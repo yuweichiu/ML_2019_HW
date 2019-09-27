@@ -1,26 +1,14 @@
 # -*- coding: utf-8 -*-
 """
+The function built for using tensorflow function.
+
 Created on 2018/9/5 下午 04:10
 @author: Ivan Chiu
-
 """
 
 import tensorflow as tf
 import numpy as np
 from tensorflow.contrib.framework.python.ops import add_arg_scope
-
-
-def batch_index(b_size, total):
-    lid = []
-    for i in range(total//b_size):
-        lid.append(i*b_size)
-        # print(i, i*b_size)
-    if (i + 1)*b_size < total:
-        i = i + 1
-        lid.append(i*b_size)
-    else:
-        pass
-    return lid
 
 
 @add_arg_scope
@@ -35,6 +23,7 @@ def input_data(x_placeholder, shape):
                 in_channels : the amount of channels in input image.
     """
     return tf.reshape(x_placeholder, shape=shape)
+
 
 @add_arg_scope
 def conv2d(name, x, depth, kernel_size, stride=1, padding='SAME', is_training=True, weight_init='he_normal', b=0.01, activation=None, norm=True):
@@ -154,6 +143,7 @@ def maxpool2d(name, x, kernel_size, stride=1, padding='SAME'):
         print(md_str)
         return output
 
+
 @add_arg_scope
 def avgpool2d(name, x, kernel_size, stride=1, padding='SAME'):
     with tf.variable_scope(name):
@@ -173,6 +163,7 @@ def avgpool2d(name, x, kernel_size, stride=1, padding='SAME'):
         print(md_str)
     return output
 
+
 @add_arg_scope
 def upsampling2d(name, x, kernel_size, method='nearest'):
     output = tf.keras.layers.UpSampling2D(kernel_size, interpolation=method, name=name)(x)
@@ -187,6 +178,7 @@ def upsampling2d(name, x, kernel_size, method='nearest'):
 
     return output
 
+
 def flatten(name, x):
     with tf.variable_scope(name):
         x_shape = x.get_shape().as_list()[1:]
@@ -200,6 +192,7 @@ def flatten(name, x):
             )
         print(md_str)
         return xflat
+
 
 @add_arg_scope
 def dense(name, x, units, is_training=True, weight_init='he_normal', activation=None, norm=True):
@@ -248,6 +241,7 @@ def dense(name, x, units, is_training=True, weight_init='he_normal', activation=
             return tf.nn.leaky_relu(b_norm)
         else:
             return b_norm
+
 
 @add_arg_scope
 def dropout(name, funct_output, prob=0.5, is_training=False):
@@ -309,116 +303,3 @@ def accuracy(prediction, y_target):
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(y_target, 1))
     accu = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
     return accu
-
-
-def model_summary(keras_model, param_dict=None, valid_acc_dict=None, print_out=True, save_dir=None):
-    str_list = []
-    s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-        'Name', 'Input_shape', 'Kernel size', 'Strides', 'Padding', 'Output_shape'
-    )
-    str_list.append(s)
-    str_list.append("-"*121)
-    for l in keras_model.layers:
-        if l.name.split('_')[0] == 'conv2d':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), str(l.kernel._keras_shape), str(l.strides), l.padding, str(l.output_shape)
-            )
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'conv2d' and l.name.split('_')[1] == 'transpose':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), str(l.kernel._keras_shape), str(l.strides), l.padding, str(l.output_shape)
-            )
-            str_list.append(s)
-
-        elif l.name.split('_')[0] == 'batch':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), "", "", "", ""
-            )
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'activation':
-            str0 = l.output.name.split("/")
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                str0[0]+"/"+str0[-1], "", "", "", "", "")
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'leaky':
-            s = '{0:25s}'.format(
-                l.name)
-            str_list.append(s)
-        elif (l.name.split('_')[0] == 'max') and (l.name.split('_')[1] == 'pooling2d'):
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), str(l.pool_size), str(l.strides), l.padding, str(l.output_shape)
-            )
-            str_list.append(s)
-        elif (l.name.split('_')[0] == 'avg') and (l.name.split('_')[1] == 'pooling2d'):
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), str(l.pool_size), str(l.strides), l.padding, str(l.output_shape)
-            )
-            str_list.append(s)
-        elif (l.name.split('_')[0] == 'up') and (l.name.split('_')[1] == 'sampling2d'):
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), "", str(l.size), "", str(l.output_shape)
-            )
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'flatten' or l.name.split('_')[0] == 'reshape':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), "", "", "", str(l.output_shape))
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'dense':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(
-                l.name, str(l.input_shape), str(l.units), "", "", str(l.output_shape)
-            )
-            str_list.append(s)
-        elif l.name.split('_')[0] == 'dropout':
-            s = '{0:25s} | {1:25s} | {2:20s} | {3:8s} | {4:8s} | {5:20s}'.format(l.name, str(l.rate), "", "", "", "")
-            str_list.append(s)
-    str_list.append("-"*121)
-
-    if param_dict:
-        for key in sorted(param_dict.keys()):
-            s = key + ": " + str(param_dict[key])
-            str_list.append(s)
-        str_list.append("-" * 121)
-
-    if valid_acc_dict:
-        str_list.append(str(len(valid_acc_dict)) + "-FOLD VALIDATION ACCURACY")
-        acc = []
-        for key in sorted(valid_acc_dict.keys()):
-            acc.append(valid_acc_dict[key])
-            s = key + ": " + "{0:7.4f}%".format(100*valid_acc_dict[key])
-            str_list.append(s)
-        mean_acc = np.mean(np.asarray(acc))
-        str_list.append("AVG: {0:7.4f}%".format(100*mean_acc))
-
-    if print_out:
-        for s in str_list:
-            print(s)
-    if save_dir:
-        with open(save_dir, 'w') as f:
-            for s in str_list:
-                f.write(s + "\n")
-
-    return str_list
-
-
-def N_Fold_Validate(n_splits, num_data):
-    splits = n_splits + 1
-    id_max = num_data - 1
-    seq = np.linspace(0, id_max, splits, endpoint=True, dtype=int)
-    nf_list = []
-    for i in range(n_splits):
-        start = seq[i]
-        end = seq[i+1]
-        nf_list.append(np.arange(start, end).tolist())
-
-    nf_list_f = []
-    for id, nf in enumerate(nf_list):
-        temp = nf_list.copy()
-        temp.pop(id)
-        train = []
-        for t in temp:
-            train = train + t
-        nf_list_f.append([train, nf])
-
-    return nf_list_f
-
-

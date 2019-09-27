@@ -15,9 +15,8 @@ import matplotlib.pyplot as plt
 import os
 
 # read csv file
-os.chdir("./ml_2019_hw1")
-train_df = pd.read_csv("./train_en.csv", encoding = "utf-8")
-test_df = pd.read_csv("./test.csv", encoding = "utf-8", names=list(range(11)))
+train_df = pd.read_csv("./hw1/train_en.csv", encoding = "utf-8")
+test_df = pd.read_csv("./hw1/test.csv", encoding = "utf-8", names=list(range(11)))
 
 # data extraction
 train_df_num = train_df.drop(columns=['date', 'Term'])
@@ -111,4 +110,4 @@ y_es = y_esn*std_y + mean_y
 results['id'] = id_list
 results['value'] = y_es.flatten()
 results_df = pd.DataFrame(results)
-results_df.to_csv('ans.csv', index=False)
+results_df.to_csv('./hw1/ans.csv', index=False)

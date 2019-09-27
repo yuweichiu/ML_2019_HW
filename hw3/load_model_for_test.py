@@ -31,7 +31,7 @@ from keras.models import load_model
 # read data:
 # train_data = pd.read_csv(r'D:\YuWei\NTU\ML_HungYiLee\ml2019spring-hw3\train_data.csv', header=None)
 # train_label = pd.read_csv(r'D:\YuWei\NTU\ML_HungYiLee\ml2019spring-hw3\train_label.csv', header=None)
-test_data = pd.read_csv(r'D:\YuWei\NTU\ML_HungYiLee\ml2019spring-hw3\test_data.csv', header=None)
+test_data = pd.read_csv('./data/ml2019spring-hw3/test_data.csv', header=None)
 
 # normalize and one-hot:
 # train_data = train_data.values/255

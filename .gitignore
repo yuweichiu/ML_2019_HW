@@ -1,0 +1,12 @@
+# ignore large data
+/data
+
+# ignore pycache
+/src/__pycache__
+
+# ignore vscode and pycharm setting
+/.vscode
+/.idea
+
+# ignore /logs
+/logs

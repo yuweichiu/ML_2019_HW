@@ -10,9 +10,8 @@ import pandas as pd
 import numpy as np
 
 #read data
-os.chdir("./ml_2019_hw2")
-df = pd.read_csv("./train.csv", encoding='utf-8')
-df2 = pd.read_csv("./test.csv", encoding='utf-8')
+df = pd.read_csv("./hw2/train.csv", encoding='utf-8')
+df2 = pd.read_csv("./hw2/test.csv", encoding='utf-8')
 
 # cleaning
 df.replace(" ?", np.nan, inplace=True)
@@ -130,8 +129,8 @@ for e in range(500):
 
 x_test_n = np.divide(np.subtract(x_test_r, min_x), np.subtract(max_x, min_x))
 
-# np.savetxt('loss_train.txt', loss_train)
-# np.savetxt('loss_valid.txt', loss_valid)
+# np.savetxt('./hw2/loss_train.txt', loss_train)
+# np.savetxt('./hw2/loss_valid.txt', loss_valid)
 
 
 

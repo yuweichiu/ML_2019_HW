@@ -11,7 +11,7 @@ import numpy as np
 from skimage.io import imread, imsave
 # import cv2
 
-IMAGE_PATH = r'D:\YuWei\NTU\ML_HungYiLee\ml2019spring-hw7\Aberdeen\Aberdeen'
+IMAGE_PATH = r'./data/ml2019spring-hw7/Aberdeen'
 
 # Images for compression & reconstruction
 test_image = ['1.jpg', '10.jpg', '22.jpg', '37.jpg', '72.jpg']
@@ -62,14 +62,14 @@ for x in test_image:
     i = int(filelist.index(x))
     # reconstruct = process(u[i, 0:k].dot(weight) + mean)
     reconstruct = process(u[i, 0:k].dot(weight) + mean)
-    imsave(os.path.join("./ml_2019_hw7", "reconstruction_" + x[:-4] + '.jpg'), reconstruct.reshape(img_shape))
+    imsave(os.path.join("./hw7", "reconstruction_" + x[:-4] + '.jpg'), reconstruct.reshape(img_shape))
 
 average = process(mean)
-imsave(os.path.join("./ml_2019_hw7", 'average.jpg'), average.reshape(img_shape))
+imsave(os.path.join("./hw7", 'average.jpg'), average.reshape(img_shape))
 
 for x in range(5):
     eigenface = process(weight)
-    imsave(os.path.join("./ml_2019_hw7", "eigenface_" + str(x) + '.jpg'), eigenface.reshape(img_shape))
+    imsave(os.path.join("./hw7", "eigenface_" + str(x) + '.jpg'), eigenface.reshape(img_shape))
 
 for i in range(5):
     number = s[i] * 100 / sum(s)

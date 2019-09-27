@@ -8,11 +8,10 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-os.chdir("./ml_2019_hw2")
-l_tr = np.loadtxt("loss_train.txt")
-l_va = np.loadtxt("loss_valid.txt")
-l_tr_ada = np.loadtxt("loss_train_adagrad.txt")
-l_va_ada = np.loadtxt("loss_valid_adagrad.txt")
+l_tr = np.loadtxt("./hw2/loss_train.txt")
+l_va = np.loadtxt("./hw2/loss_valid.txt")
+l_tr_ada = np.loadtxt("./hw2/loss_train_adagrad.txt")
+l_va_ada = np.loadtxt("./hw2/loss_valid_adagrad.txt")
 epoch = list(range(len(l_tr)))
 
 fig = plt.figure()
