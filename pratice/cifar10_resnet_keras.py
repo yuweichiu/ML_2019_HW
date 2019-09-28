@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Resnet v2 in keras
-Created on : 2019/8/14
+Trains a ResNet on the CIFAR10 dataset.
+Created on : 2019/9/27
 @author: Ivan Chiu
-@ref: https://keras.io/examples/cifar10_resnet/
 """
 
 from __future__ import print_function
@@ -16,14 +15,12 @@ from keras.callbacks import ReduceLROnPlateau, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 from keras.regularizers import l2
 from keras import backend as K
-from keras.utils import np_utils
 from keras.models import Model
 from keras.datasets import cifar10
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import os
-import time
+import os, time
+from matplotlib import pyplot as plt
+
 
 ############################################################
 #  Session Setting
@@ -41,7 +38,7 @@ set_session(sess)  # set this TensorFlow session as the default session for Kera
 
 # Training parameters
 batch_size = 32  # orig paper trained all networks with batch_size=128
-epochs = 200
+epochs = 20
 data_augmentation = True
 num_classes = 10
 
@@ -49,56 +46,58 @@ num_classes = 10
 subtract_pixel_mean = True
 
 # Model parameter
-n = 6  # i.e. num_res_blocks
+# ----------------------------------------------------------------------------
+#           |      | 200-epoch | Orig Paper| 200-epoch | Orig Paper| sec/epoch
+# Model     |  n   | ResNet v1 | ResNet v1 | ResNet v2 | ResNet v2 | GTX1080Ti
+#           |v1(v2)| %Accuracy | %Accuracy | %Accuracy | %Accuracy | v1 (v2)
+# ----------------------------------------------------------------------------
+# ResNet20  | 3 (2)| 92.16     | 91.25     | -----     | -----     | 35 (---)
+# ResNet32  | 5(NA)| 92.46     | 92.49     | NA        | NA        | 50 ( NA)
+# ResNet44  | 7(NA)| 92.50     | 92.83     | NA        | NA        | 70 ( NA)
+# ResNet56  | 9 (6)| 92.71     | 93.03     | 93.01     | NA        | 90 (100)
+# ResNet110 |18(12)| 92.65     | 93.39+-.16| 93.15     | 93.63     | 165(180)
+# ResNet164 |27(18)| -----     | 94.07     | -----     | 94.54     | ---(---)
+# ResNet1001| (111)| -----     | 92.39     | -----     | 95.08+-.14| ---(---)
+# ---------------------------------------------------------------------------
+n = 3
+
+# Model version
+# Orig paper: version = 1 (ResNet v1), Improved ResNet: version = 2 (ResNet v2)
+version = 1
 
 # Computed depth from supplied model parameter n
-depth = n * 12 + 2
+if version == 1:
+    depth = n * 6 + 2
+elif version == 2:
+    depth = n * 9 + 2
 
 # Model name, depth and version
-model_type = 'ResNet%dv2' % depth
+model_type = 'ResNet%dv%d' % (depth, version)
 
-# read data:
-x_train = pd.read_csv('./data/ml2019spring-hw3/train_data.csv', header=None)
-y_train = pd.read_csv('./data/ml2019spring-hw3/train_label.csv', header=None)
-x_test = pd.read_csv('./data/ml2019spring-hw3/test_data.csv', header=None)
-
-# normalize and one-hot:
-x_train = x_train.values/255
-x_test = x_test.values/255
-y_train = np_utils.to_categorical(y_train.values.flatten(), 7)
-
-# make sure the input data shape:
-x_train = np.reshape(x_train, [-1, 48, 48, 1]).astype(np.float32)
-x_test = np.reshape(x_test, [-1, 48, 48, 1]).astype(np.float32)
-
-# validate:
-pa4val = 0.2
-x_valid = x_train[int(x_train.shape[0] * (1 - pa4val)): ]
-y_valid = y_train[int(x_train.shape[0] * (1 - pa4val)): ]
-y_train = y_train[0: int(x_train.shape[0] * (1 - pa4val))]
-x_train = x_train[0: int(x_train.shape[0] * (1 - pa4val))]
+# Load the CIFAR10 data.
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
 # Input image dimensions.
 input_shape = x_train.shape[1:]
 
-# # Normalize data.
-# x_train = x_train.astype('float32') / 255
-# x_test = x_test.astype('float32') / 255
+# Normalize data.
+x_train = x_train.astype('float32') / 255
+x_test = x_test.astype('float32') / 255
 
 # If subtract pixel mean is enabled
 if subtract_pixel_mean:
     x_train_mean = np.mean(x_train, axis=0)
     x_train -= x_train_mean
-    x_valid -= x_train_mean
+    x_test -= x_train_mean
 
-print(x_train.shape[0], 'train samples')
-print(x_valid.shape[0], 'test samples')
 print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
 print('y_train shape:', y_train.shape)
 
 # Convert class vectors to binary class matrices.
-# y_train = keras.utils.to_categorical(y_train, num_classes)
-# y_valid = keras.utils.to_categorical(y_valid, num_classes)
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
 
 
 def lr_schedule(epoch):
@@ -171,7 +170,81 @@ def resnet_layer(inputs,
     return x
 
 
-def resnet_v2(input_shape, depth, num_classes=7):
+def resnet_v1(input_shape, depth, num_classes=10):
+    """ResNet Version 1 Model builder [a]
+
+    Stacks of 2 x (3 x 3) Conv2D-BN-ReLU
+    Last ReLU is after the shortcut connection.
+    At the beginning of each stage, the feature map size is halved (downsampled)
+    by a convolutional layer with strides=2, while the number of filters is
+    doubled. Within each stage, the layers have the same number filters and the
+    same number of filters.
+    Features maps sizes:
+    stage 0: 32x32, 16
+    stage 1: 16x16, 32
+    stage 2:  8x8,  64
+    The Number of parameters is approx the same as Table 6 of [a]:
+    ResNet20 0.27M
+    ResNet32 0.46M
+    ResNet44 0.66M
+    ResNet56 0.85M
+    ResNet110 1.7M
+
+    # Arguments
+        input_shape (tensor): shape of input image tensor
+        depth (int): number of core convolutional layers
+        num_classes (int): number of classes (CIFAR10 has 10)
+
+    # Returns
+        model (Model): Keras model instance
+    """
+    if (depth - 2) % 6 != 0:
+        raise ValueError('depth should be 6n+2 (eg 20, 32, 44 in [a])')
+    # Start model definition.
+    num_filters = 16
+    num_res_blocks = int((depth - 2) / 6)
+
+    inputs = Input(shape=input_shape)
+    x = resnet_layer(inputs=inputs)
+    # Instantiate the stack of residual units
+    for stack in range(3):
+        for res_block in range(num_res_blocks):
+            strides = 1
+            if stack > 0 and res_block == 0:  # first layer but not first stack
+                strides = 2  # downsample
+            y = resnet_layer(inputs=x,
+                             num_filters=num_filters,
+                             strides=strides)
+            y = resnet_layer(inputs=y,
+                             num_filters=num_filters,
+                             activation=None)
+            if stack > 0 and res_block == 0:  # first layer but not first stack
+                # linear projection residual shortcut connection to match
+                # changed dims
+                x = resnet_layer(inputs=x,
+                                 num_filters=num_filters,
+                                 kernel_size=1,
+                                 strides=strides,
+                                 activation=None,
+                                 batch_normalization=False)
+            x = keras.layers.add([x, y])
+            x = Activation('relu')(x)
+        num_filters *= 2
+
+    # Add classifier on top.
+    # v1 does not use BN after last shortcut connection-ReLU
+    x = AveragePooling2D(pool_size=8)(x)
+    y = Flatten()(x)
+    outputs = Dense(num_classes,
+                    activation='softmax',
+                    kernel_initializer='he_normal')(y)
+
+    # Instantiate model.
+    model = Model(inputs=inputs, outputs=outputs)
+    return model
+
+
+def resnet_v2(input_shape, depth, num_classes=10):
     """ResNet Version 2 Model builder [b]
 
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
@@ -183,25 +256,24 @@ def resnet_v2(input_shape, depth, num_classes=7):
     doubled. Within each stage, the layers have the same number filters and the
     same filter map sizes.
     Features maps sizes:
-    conv1  : 48x48,  16
-    stage 0: 48x48,  64
-    stage 1: 24x24, 128
-    stage 2: 12x12, 256
-    stage 3: 6 x 6, 512
+    conv1  : 32x32,  16
+    stage 0: 32x32,  64
+    stage 1: 16x16, 128
+    stage 2:  8x8,  256
 
     # Arguments
         input_shape (tensor): shape of input image tensor
         depth (int): number of core convolutional layers
-        num_classes (int): number of classes (e.g. CIFAR10 has 10)
+        num_classes (int): number of classes (CIFAR10 has 10)
 
     # Returns
         model (Model): Keras model instance
     """
-    if (depth - 2) % 12 != 0:
-        raise ValueError('depth should be 12n+2')
+    if (depth - 2) % 9 != 0:
+        raise ValueError('depth should be 9n+2 (eg 56 or 110 in [b])')
     # Start model definition.
     num_filters_in = 16
-    num_res_blocks = int((depth - 2) / 12)
+    num_res_blocks = int((depth - 2) / 9)
 
     inputs = Input(shape=input_shape)
     # v2 performs Conv2D with BN-ReLU on input before splitting into 2 paths
@@ -210,7 +282,7 @@ def resnet_v2(input_shape, depth, num_classes=7):
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(4):
+    for stage in range(3):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -257,7 +329,7 @@ def resnet_v2(input_shape, depth, num_classes=7):
     # v2 has BN-ReLU before Pooling
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
-    x = AveragePooling2D(pool_size=6)(x)  # the dimension of last layer
+    x = AveragePooling2D(pool_size=8)(x)
     y = Flatten()(x)
     outputs = Dense(num_classes,
                     activation='softmax',
@@ -268,7 +340,10 @@ def resnet_v2(input_shape, depth, num_classes=7):
     return model
 
 
-model = resnet_v2(input_shape=input_shape, depth=depth)
+if version == 2:
+    model = resnet_v2(input_shape=input_shape, depth=depth)
+else:
+    model = resnet_v1(input_shape=input_shape, depth=depth)
 
 model.compile(loss='categorical_crossentropy',
               optimizer=Adam(lr=lr_schedule(0)),
@@ -278,12 +353,13 @@ print(model_type)
 
 # create project
 tn = time.localtime()
-project = "./logs/hw3/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
+project = "./logs/pratice/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
 os.mkdir(project)
 
-# Prepare model model saving directory.
+# # Prepare model model saving directory.
 # save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = '%s_model_{epoch:03d}.h5' % model_type
+model_name = 'cifar10_%s_model_{epoch:03d}.h5' % model_type
+
 filepath = os.path.join(project, model_name)
 
 # Prepare callbacks for model saving and for learning rate adjustment.
@@ -306,83 +382,74 @@ callbacks = [checkpoint, lr_reducer, lr_scheduler, tensorboard]
 # Run training, with or without data augmentation.
 if not data_augmentation:
     print('Not using data augmentation.')
-    hist = model.fit(
-        x_train, y_train,
-        batch_size=batch_size,
-        epochs=epochs,
-        validation_data=(x_valid, y_valid),
-        shuffle=True,
-        callbacks=callbacks
-    )
+    hist = model.fit(x_train, y_train,
+              batch_size=batch_size,
+              epochs=epochs,
+              validation_data=(x_test, y_test),
+              shuffle=True,
+              callbacks=callbacks)
 else:
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
     datagen = ImageDataGenerator(
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True
-    )
-    # datagen = ImageDataGenerator(
-    #     # set input mean to 0 over the dataset
-    #     featurewise_center=False,
-    #     # set each sample mean to 0
-    #     samplewise_center=False,
-    #     # divide inputs by std of dataset
-    #     featurewise_std_normalization=False,
-    #     # divide each input by its std
-    #     samplewise_std_normalization=False,
-    #     # apply ZCA whitening
-    #     zca_whitening=False,
-    #     # epsilon for ZCA whitening
-    #     zca_epsilon=1e-06,
-    #     # randomly rotate images in the range (deg 0 to 180)
-    #     rotation_range=0,
-    #     # randomly shift images horizontally
-    #     width_shift_range=0.1,
-    #     # randomly shift images vertically
-    #     height_shift_range=0.1,
-    #     # set range for random shear
-    #     shear_range=0.,
-    #     # set range for random zoom
-    #     zoom_range=0.,
-    #     # set range for random channel shifts
-    #     channel_shift_range=0.,
-    #     # set mode for filling points outside the input boundaries
-    #     fill_mode='nearest',
-    #     # value used for fill_mode = "constant"
-    #     cval=0.,
-    #     # randomly flip images
-    #     horizontal_flip=True,
-    #     # randomly flip images
-    #     vertical_flip=False,
-    #     # set rescaling factor (applied before any other transformation)
-    #     rescale=None,
-    #     # set function that will be applied on each input
-    #     preprocessing_function=None,
-    #     # image data format, either "channels_first" or "channels_last"
-    #     data_format=None,
-    #     # fraction of images reserved for validation (strictly between 0 and 1)
-    #     validation_split=0.0)
+        # set input mean to 0 over the dataset
+        featurewise_center=False,
+        # set each sample mean to 0
+        samplewise_center=False,
+        # divide inputs by std of dataset
+        featurewise_std_normalization=False,
+        # divide each input by its std
+        samplewise_std_normalization=False,
+        # apply ZCA whitening
+        zca_whitening=False,
+        # epsilon for ZCA whitening
+        zca_epsilon=1e-06,
+        # randomly rotate images in the range (deg 0 to 180)
+        rotation_range=0,
+        # randomly shift images horizontally
+        width_shift_range=0.1,
+        # randomly shift images vertically
+        height_shift_range=0.1,
+        # set range for random shear
+        shear_range=0.,
+        # set range for random zoom
+        zoom_range=0.,
+        # set range for random channel shifts
+        channel_shift_range=0.,
+        # set mode for filling points outside the input boundaries
+        fill_mode='nearest',
+        # value used for fill_mode = "constant"
+        cval=0.,
+        # randomly flip images
+        horizontal_flip=True,
+        # randomly flip images
+        vertical_flip=False,
+        # set rescaling factor (applied before any other transformation)
+        rescale=None,
+        # set function that will be applied on each input
+        preprocessing_function=None,
+        # image data format, either "channels_first" or "channels_last"
+        data_format=None,
+        # fraction of images reserved for validation (strictly between 0 and 1)
+        validation_split=0.0)
 
     # Compute quantities required for featurewise normalization
     # (std, mean, and principal components if ZCA whitening is applied).
     datagen.fit(x_train)
 
-    train_flow = datagen.flow(x_train, y_train, batch_size=batch_size)
     # Fit the model on the batches generated by datagen.flow().
+    train_flow = datagen.flow(x_train, y_train, batch_size=batch_size)
     hist = model.fit_generator(
         train_flow,
         steps_per_epoch=train_flow.n // batch_size,
-        validation_data=(x_valid, y_valid),
-        validation_steps=x_valid.shape[0] // batch_size,
+        validation_data=(x_test, y_test),
+        validation_steps=x_test.shape[0] // batch_size,
         epochs=epochs, verbose=1, workers=4,
         callbacks=callbacks
     )
 
 # Score trained model.
-scores = model.evaluate(x_valid, y_valid, verbose=1)
+scores = model.evaluate(x_test, y_test, verbose=1)
 print('Test loss:', scores[0])
 print('Test accuracy:', scores[1])
 
