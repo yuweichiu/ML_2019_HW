@@ -6,6 +6,7 @@ Created on 2019/9/28 下午 11:00
 """
 
 from keras.datasets import mnist
+from keras.datasets import cifar10
 from keras.models import Sequential, Model, load_model
 from keras.initializers import Constant, truncated_normal
 from keras.optimizers import SGD, Adam
@@ -36,16 +37,28 @@ set_session(sess)  # set this TensorFlow session as the default session for Kera
 ############################################################
 #  Dataset
 ############################################################
-n_class = 10
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-# use a part of dataset:
-data_num = 50000
-x_train, y_train = x_train[:data_num], y_train[:data_num]
-x_test, y_test = x_test[:data_num], y_test[:data_num]
+dataset = 'cifar10'
+if dataset == 'mnist':
+    n_class = 10
+    img_shape = [28, 28, 1]
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+elif dataset == 'cifar10':
+    n_class = 10
+    img_shape = [32, 32, 3]
+    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+else:
+    n_class = 10
+    img_shape = [28, 28, 1]
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# # use a part of dataset:
+# data_num = 50000
+# x_train, y_train = x_train[:data_num], y_train[:data_num]
+# x_test, y_test = x_test[:data_num], y_test[:data_num]
 
 # Make sure the shape is N, H, W, C:
-x_train = np.reshape(x_train, [data_num, 28, 28, 1])
-x_test = np.reshape(x_test, [-1, 28, 28, 1])
+x_train = np.reshape(x_train, [-1] + img_shape)
+x_test = np.reshape(x_test, [-1] + img_shape)
 
 # Normalization:
 x_train, x_test = x_train.astype('float32')/255, x_test.astype('float32')/255
@@ -80,7 +93,7 @@ param['Bias_initializer'] = b_init[0] + " " + str(b_init[1])
 # Build model:
 ############################################################
 K.clear_session()
-inputs = kst.md_input(shape=(28, 28, 1))
+inputs = kst.md_input(shape=img_shape)
 net = kst.conv2d(inputs, 64, (3, 3), kernel_init=w_init[2], bias_init=b_init[1])
 net = kst.batch_norm(net)
 net = kst.activation(net, "relu")
@@ -165,7 +178,7 @@ callbacks = [lr_scheduler, checkpoint, tensorboard]
 
 hist = model.fit(x_train, y_train,
                  batch_size=bt_size, epochs=epochs, shuffle=True,
-                 validation_split=0.2, callbacks=callbacks)
+                 validation_split=validate_rate, callbacks=callbacks)
 
 # Score trained model.
 scores = model.evaluate(x_test, y_test, verbose=1)

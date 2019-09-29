@@ -9,4 +9,6 @@
 /.idea
 
 # ignore /logs
-/logs
+/hw3/logs
+/hw7/logs
+/practice/logs
