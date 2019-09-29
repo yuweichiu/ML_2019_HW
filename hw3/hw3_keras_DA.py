@@ -11,7 +11,6 @@ from keras_preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
 from keras import backend as K
-import src.tf_tools as nn
 import src.keras_tools as kst
 import numpy as np
 import pandas as pd

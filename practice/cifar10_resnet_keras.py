@@ -353,7 +353,7 @@ print(model_type)
 
 # create project
 tn = time.localtime()
-project = "./logs/pratice/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
+project = "./logs/practice/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
 os.mkdir(project)
 
 # # Prepare model model saving directory.
