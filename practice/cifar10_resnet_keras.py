@@ -59,11 +59,11 @@ subtract_pixel_mean = True
 # ResNet164 |27(18)| -----     | 94.07     | -----     | 94.54     | ---(---)
 # ResNet1001| (111)| -----     | 92.39     | -----     | 95.08+-.14| ---(---)
 # ---------------------------------------------------------------------------
-n = 3
+n = 6
 
 # Model version
 # Orig paper: version = 1 (ResNet v1), Improved ResNet: version = 2 (ResNet v2)
-version = 1
+version = 2
 
 # Computed depth from supplied model parameter n
 if version == 1:
@@ -353,7 +353,7 @@ print(model_type)
 
 # create project
 tn = time.localtime()
-project = "./logs/practice/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
+project = "./practice/logs/D{0:4d}{1:02d}{2:02d}T{3:02d}{4:02d}".format(tn[0], tn[1], tn[2], tn[3], tn[4])
 os.mkdir(project)
 
 # # Prepare model model saving directory.
@@ -453,20 +453,20 @@ scores = model.evaluate(x_test, y_test, verbose=1)
 print('Test loss:', scores[0])
 print('Test accuracy:', scores[1])
 
-acc_train = hist.history['acc']
-loss_train = hist.history['loss']
-acc_valid = hist.history['val_acc']
-loss_valid = hist.history['val_loss']
-np.savetxt(os.path.join(project, 'acc.txt'), acc_train)
-np.savetxt(os.path.join(project, 'loss.txt'), loss_train)
-np.savetxt(os.path.join(project, 'val_acc.txt'), acc_valid)
-np.savetxt(os.path.join(project, 'val_loss.txt'), loss_valid)
-
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-ax.plot(range(epochs), acc_train, label='Train')
-ax.plot(range(epochs), acc_valid, label='Validate')
-ax.legend()
-plt.savefig(os.path.join(project, 'training_process.png'), dpi=300)
-plt.show(block=False)
-plt.close('all')
+# acc_train = hist.history['acc']
+# loss_train = hist.history['loss']
+# acc_valid = hist.history['val_acc']
+# loss_valid = hist.history['val_loss']
+# np.savetxt(os.path.join(project, 'acc.txt'), acc_train)
+# np.savetxt(os.path.join(project, 'loss.txt'), loss_train)
+# np.savetxt(os.path.join(project, 'val_acc.txt'), acc_valid)
+# np.savetxt(os.path.join(project, 'val_loss.txt'), loss_valid)
+#
+# fig = plt.figure()
+# ax = fig.add_subplot(1, 1, 1)
+# ax.plot(range(epochs), acc_train, label='Train')
+# ax.plot(range(epochs), acc_valid, label='Validate')
+# ax.legend()
+# plt.savefig(os.path.join(project, 'training_process.png'), dpi=300)
+# plt.show(block=False)
+# plt.close('all')

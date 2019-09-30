@@ -28,6 +28,9 @@ class Config(object):
     # Validation rate:
     VALIDATION_RATE = 0.2
 
+    # Subtract the pixel mean of training data:
+    SUBTRACT_PIXEL_MEAN = True
+
     # The initializer of kernels(weights) or bias in convolution or dense layer:
     # For kernels: 'glorot_normal', 'he_normal', truncated_normal(mean, std), ...
     KERNEL_INIT_METHOD = 'glorot_normal'
@@ -54,5 +57,22 @@ class Config(object):
     # The default activation function:
     ACTIVATION_FUNC = 'relu'
 
+    # Save model weights each epoch or best only
+    SAVE_BEST_ONLY = False
+
+    # Resnetv2 layer depth:
+    # depth should be 9n+2 (eg 56 or 110)
+    RESNET_DEPTH = 56
+
     def __init__(self):
-        pass
+        self.list = None
+
+    def display(self, print_out=True):
+        self.list = ["Configurations:"]
+        for a in dir(self):
+            if not a.startswith("__") and not a.startswith("list") and not callable(getattr(self, a)):
+                self.list.append("{:30} {}".format(a, getattr(self, a)))
+        if print_out:
+            for s in self.list:
+                print(s)
+        return self.list

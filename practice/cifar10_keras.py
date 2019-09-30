@@ -39,8 +39,11 @@ set_session(sess)  # set this TensorFlow session as the default session for Kera
 #  Configurations
 ############################################################
 class Cifar10Config(Config):
+    # ResNetv2 depth:
+    RESNET_DEPTH = 56
+
     # The name of your work:
-    NAME = 'cifar10_test'
+    NAME = 'cifar10_ResNet{:s}v2'.format(str(RESNET_DEPTH))
 
     # Number of class in dataset:
     N_CLASS = 10
@@ -65,10 +68,10 @@ class Cifar10Config(Config):
 #  Datasets
 ############################################################
 class Cifar10Dataset(utils.Dataset):
-    def feed_config(self, config):
-        self.n_class = config.N_CLASS
-        self.img_shape = config.IMG_SHAPE
-        self.val_rate = config.VALIDATION_RATE
+    def feed_config(self, f_config):
+        self.n_class = f_config.N_CLASS
+        self.img_shape = f_config.IMG_SHAPE
+        self.val_rate = f_config.VALIDATION_RATE
 
     def load(self, usage):
         if usage == 'train':
@@ -101,6 +104,12 @@ def train(model, config, augmentation=0):
     dataset_val.load('val')
     dataset_val.prepare()
 
+    dataset_train.x_data, dataset_val.x_data = dataset_train.x_data / 255, dataset_val.x_data / 255
+    if config.SUBTRACT_PIXEL_MEAN is True:
+        x_train_mean = np.mean(dataset_train.x_data, axis=0)
+        dataset_train.x_data -= x_train_mean
+        dataset_val.x_data -= x_train_mean
+
     model.train(dataset_train, dataset_val, augmentation)
 
 
@@ -108,11 +117,23 @@ def train(model, config, augmentation=0):
 #  Classification
 ############################################################
 def classify(model, config):
+    # Training dataset:
+    dataset_train = Cifar10Dataset()
+    dataset_train.feed_config(config)
+    dataset_train.load('train')
+    dataset_train.prepare()
+
     # Testing dataset:
     dataset_test = Cifar10Dataset()
     dataset_test.feed_config(config)
     dataset_test.load('test')
     dataset_test.prepare()
+
+    dataset_train.x_data, dataset_test.x_data = dataset_train.x_data / 255, dataset_test.x_data / 255
+    if config.SUBTRACT_PIXEL_MEAN is True:
+        x_train_mean = np.mean(dataset_train.x_data, axis=0)
+        dataset_train.x_data -= x_train_mean
+        dataset_test.x_data -= x_train_mean
 
     prediction = model.classify(dataset_test.x_data)
     accuracy = model.evaluate(prediction['label'].values, np.argmax(dataset_test.y_data, axis=1))
@@ -138,7 +159,7 @@ if __name__ == '__main__':
                         metavar='0 or 1',
                         help="Resume training / use as initial weight")
     parser.add_argument("--weights", required=False,
-                        default=0,
+                        default=None,
                         metavar="/path/to/weight.h5",
                         help="Weight file directory")
     parser.add_argument('--augmentation', required=False,
@@ -150,26 +171,29 @@ if __name__ == '__main__':
     # Configurations
     if args.mode == "train":
         config = Cifar10Config()
+        config_list = config.display(print_out=False)
     else:
         class ClassifyConfig(Cifar10Config):
             BATCH_SIZE = 1
         config = ClassifyConfig()
+        config_list = config.display(print_out=False)
 
     if args.mode == "train":
         model = modelib.NNModel(mode="training", config=config, logdir=args.logs, resume=int(args.resume))
 
         if int(args.resume) == 1:
+            # TODO: verify the resume mechanism
             model.load_weights(args.weights)
             model.get_init_epoch(args.weights)
+        else:
+            if args.weights:
+                model.load_weights(args.weights)
+            else:
+                print("No weights specified, starting a new training work.")
 
         train(model, config, augmentation=int(args.augmentation))
     else:
         model = modelib.NNModel(mode="classify", config=config, logdir=args.logs, resume=0)
         model.load_weights(args.weights)
         classify(model, config)
-
-
-
-
-
 
