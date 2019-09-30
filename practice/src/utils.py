@@ -7,6 +7,22 @@ Created on : 2019/9/27
 """
 
 import numpy as np
+from keras.utils import np_utils
+from keras.datasets import cifar10
+
+
+class Dataset(object):
+    def __init__(self):
+        self.n_class = []
+        self.img_shape = []
+        self.val_rate = []
+
+    def prepare(self):
+        # Make sure the shape is N, H, W, C:
+        self.x_data = np.reshape(self.x_data, [-1] + self.img_shape).astype('float32')
+
+        # One-hot encoding:
+        self.y_data = np_utils.to_categorical(self.y_data, self.n_class).astype('float32')
 
 
 def batch_index(b_size, total):

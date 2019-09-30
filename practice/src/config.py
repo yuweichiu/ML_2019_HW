@@ -6,9 +6,15 @@ Created on 2019/9/29 下午 01:58
 """
 
 
-class Config():
+class Config(object):
     # The name of your work:
     NAME = 'None'
+
+    # Number of class in dataset:
+    N_CLASS = []
+
+    # The shape of image in dataset:
+    IMG_SHAPE = []
 
     # Learning rate:
     LR = 0.001
@@ -18,6 +24,9 @@ class Config():
 
     # Training batch size:
     BATCH_SIZE = 256
+
+    # Validation rate:
+    VALIDATION_RATE = 0.2
 
     # The initializer of kernels(weights) or bias in convolution or dense layer:
     # For kernels: 'glorot_normal', 'he_normal', truncated_normal(mean, std), ...
@@ -33,7 +42,7 @@ class Config():
     # the arguments of max-pooling 2d layer:
     MAXPOOL2D_KERNEL_SIZE = (2, 2)
     MAXPOOL2D_PADDING = "SAME"
-    MAXPOOL2D_STRIDES = 1
+    MAXPOOL2D_STRIDES = 2
 
     # the arguments of upsampling 2d layer:
     UPSAMPLING_KERNEL_SIZE = 2
@@ -45,3 +54,5 @@ class Config():
     # The default activation function:
     ACTIVATION_FUNC = 'relu'
 
+    def __init__(self):
+        pass

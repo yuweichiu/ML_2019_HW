@@ -6,7 +6,7 @@ Created on 2019/7/21 上午 08:56
 
 import tensorflow as tf
 import numpy as np
-import src.tf_tools as nn
+# import src.tf_tools as nn
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.layers.pooling import MaxPool2D, AvgPool2D
