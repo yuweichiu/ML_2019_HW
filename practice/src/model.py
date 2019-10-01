@@ -251,10 +251,28 @@ class NNModel():
 
     def train(self, dataset, augmentation=0):
         model_summary(self.keras_model, self.config.list, save_dir=os.path.join(self.project, "model_summary.txt"))
+
+        # Normalize dataset and split the dataset according to validation set:
+        dataset.x_data = dataset.x_data / 255
+        dataset.split()
+        if self.config.SUBTRACT_PIXEL_MEAN is True:
+            x_mean = np.mean(dataset.x_data, axis=0)
+            np.save(os.path.join(self.project, 'mean_img'), x_mean)
+            dataset.x_train -= x_mean
+            if dataset.use_val:
+                dataset.x_val -= x_mean
         if dataset.use_val:
+            dataset.validation_set = (dataset.x_val, dataset.y_val)
+            validation_steps = dataset.x_val.shape[0] // self.config.BATCH_SIZE
+        else:
+            dataset.validation_set = None
+            validation_steps = None
+
+        if dataset.use_val is True:
             monitor = 'val_acc'
         else:
             monitor = 'acc'
+        print("Using {:s} as the monitor.".format(monitor))
 
         # Prepare callbacks for model saving and for learning rate adjustment.
         checkpoint = ModelCheckpoint(filepath=os.path.join(self.project, self.checkpoint_name),
@@ -301,20 +319,8 @@ class NNModel():
 
         self.keras_model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.config.LR), metrics=['accuracy'])
         self.total_epoch = self.config.EPOCHS + self.init_epoch
-
-        dataset.x_data = dataset.x_data / 255
-        dataset.split()
-        if self.config.SUBTRACT_PIXEL_MEAN is True:
-            x_mean = np.mean(dataset.x_data, axis=0)
-            np.save(os.path.join(self.project, 'mean_img'), x_mean)
-            dataset.x_train -= x_mean
-            if dataset.use_val:
-                dataset.x_val -= x_mean
-        if dataset.use_val:
-            dataset.validation_set = (dataset.x_val, dataset.y_val)
-            validation_steps = dataset.x_val.shape[0] // self.config.BATCH_SIZE
-        else:
-            validation_steps = None
+        
+        # Start training:
         if augmentation == 0:
             print('Not using data augmentation.')
             if dataset.use_val:
@@ -448,12 +454,16 @@ class NNModel():
         init_epoch = resume_md_name.split('_epoch')[-1].split('.')[0]
         self.init_epoch = int(init_epoch)
 
-    def classify(self, images):
+    def detect(self, images):
+        images = images / 255
+        if self.config.SUBTRACT_PIXEL_MEAN is True:
+            x_mean = np.load(os.path.join(self.project, 'mean_img.npy'))
+            images -= x_mean
         predict_prob = self.keras_model.predict(images, verbose=1)
         predict_id = np.argmax(predict_prob, axis=1)
         out_df = pd.DataFrame({'id': list(range(predict_id.shape[0])), 'label': predict_id})
-        out_df.to_csv(os.path.join(self.project, "classify_" + self.model_name + ".csv"), index=False)
-        print("Saved prediction to " + os.path.abspath(os.path.join(self.project, "classify_" + self.model_name + ".csv")))
+        out_df.to_csv(os.path.join(self.project, "detect_" + self.model_name + ".csv"), index=False)
+        print("Saved prediction to " + os.path.abspath(os.path.join(self.project, "detect_" + self.model_name + ".csv")))
         return out_df
 
     def evaluate(self, prediction, labels):

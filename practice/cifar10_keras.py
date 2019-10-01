@@ -6,7 +6,7 @@ Created on 2019/9/29 下午 05:17
 python ./practice/cifar10_keras.py train --logs=./practice/logs
 python ./practice/cifar10_keras.py train --logs=./practice/logs --augmentation=1
 python ./practice/cifar10_keras.py train --logs=./practice/logs --augmentation=1 --resume=1 --weights=./practice/logs/D20190929T2220/cifar10_test_epoch020.h5
-python ./practice/cifar10_keras.py classify --logs=./practice/logs --weights=./practice/logs/D20190930T0035/cifar10_test_epoch020.h5
+python ./practice/cifar10_keras.py detect --logs=./practice/logs --weights=./practice/logs/D20191001T0153/cifar10_ResNet56v2_epoch003.h5
 
 """
 import os, sys, time
@@ -35,12 +35,13 @@ tf_config.gpu_options.allow_growth = True  # dynamically grow the memory used on
 sess = tf.Session(config=tf_config)
 set_session(sess)  # set this TensorFlow session as the default session for Keras
 
+
 ############################################################
 #  Configurations
 ############################################################
 class Cifar10Config(Config):
-    # ResNetv2 depth:
-    RESNET_DEPTH = 56
+    # ResNetv2 depth (9n+2): 
+    RESNET_DEPTH = 20
 
     # The name of your work:
     NAME = 'cifar10_ResNet{:s}v2'.format(str(RESNET_DEPTH))
@@ -61,7 +62,7 @@ class Cifar10Config(Config):
     BATCH_SIZE = 256
 
     # Validation rate:
-    VALIDATION_RATE = 0.2
+    VALIDATION_RATE = 0
 
 
 ############################################################
@@ -73,6 +74,8 @@ class Cifar10Dataset(utils.Dataset):
         self.n_class = f_config.N_CLASS
         self.img_shape = f_config.IMG_SHAPE
         self.val_rate = f_config.VALIDATION_RATE
+        if self.val_rate == 0:
+            self.use_val = False
 
     def load(self, usage):
         """
@@ -85,47 +88,6 @@ class Cifar10Dataset(utils.Dataset):
         else:
             _, (self.x_data, self.y_data) = cifar10.load_data()
 
-    def split(self):
-        """
-        Split the dataset as training set or validation set
-        :param usage (str): 'training_set' or 'validation_set'
-        :return:
-        """
-        val_rate = self.config.VALIDATION_RATE
-        total = self.x_data.shape[0]
-
-        # For training set:
-        self.x_train = self.x_data[0: int(total * (1 - val_rate))]
-        self.y_train = self.y_data[0: int(total * (1 - val_rate))]
-        print('Training set: {:d}'.format(int(total * (1 - val_rate))))
-
-        # For validation set:
-        # If validation rate is 0, means don't use validation set.
-        if val_rate == 0:
-            self.use_val = False
-            print("Validation set: N/A")
-            pass
-        else:
-            self.x_val = self.x_data[int(total * (1 - self.val_rate)): ]
-            self.y_val = self.y_data[int(total * (1 - self.val_rate)): ]
-            # self.validation_set = (self.x_val, self.y_val)
-            print('Validation set: {:d}'.format(int(total * (1 - self.val_rate))))
-
-
-    # def load(self, usage):
-    #     if usage == 'train':
-    #         (self.x_data, self.y_data), _ = cifar10.load_data()
-    #         total = self.x_data.shape[0]
-    #         self.x_data = self.x_data[0: int(total * (1 - self.val_rate))]
-    #         self.y_data = self.y_data[0: int(total * (1 - self.val_rate))]
-    #     elif usage == 'val':
-    #         (self.x_data, self.y_data), _ = cifar10.load_data()
-    #         total = self.x_data.shape[0]
-    #         self.x_data = self.x_data[int(total * (1 - self.val_rate)): ]
-    #         self.y_data = self.y_data[int(total * (1 - self.val_rate)): ]
-    #     else:
-    #         _, (self.x_data, self.y_data) = cifar10.load_data()
-
 
 ############################################################
 #  Train
@@ -135,54 +97,19 @@ def train(model, config, augmentation=0):
     dataset.feed_config(config)
     dataset.load(usage='train')
     dataset.prepare()
-    # dataset.split()
-
-    # # Training dataset:
-    # dataset_train = Cifar10Dataset()
-    # dataset_train.feed_config(config)
-    # dataset_train.load('train')
-    # dataset_train.prepare()
-    #
-    # # Validation dataset:
-    # dataset_val = Cifar10Dataset()
-    # dataset_val.feed_config(config)
-    # dataset_val.load('val')
-    # dataset_val.prepare()
-
-    # dataset.x_data, dataset.x_train, dataset.x_val = dataset.x_data / 255, dataset.x_train / 255, dataset.x_val / 255
-    # dataset_train.x_data, dataset_val.x_data = dataset_train.x_data / 255, dataset_val.x_data / 255
-    # if config.SUBTRACT_PIXEL_MEAN is True:
-    #     x_mean = np.mean(dataset.x_data, axis=0)
-    #     dataset.x_train -= x_train_mean
-    #     dataset_val.x_data -= x_train_mean
-
     model.train(dataset, augmentation)
 
 
 ############################################################
-#  Classification
+#  Detection
 ############################################################
-def classify(model, config):
-    # Training dataset:
-    dataset_train = Cifar10Dataset()
-    dataset_train.feed_config(config)
-    dataset_train.load('train')
-    dataset_train.prepare()
-
-    # Testing dataset:
-    dataset_test = Cifar10Dataset()
-    dataset_test.feed_config(config)
-    dataset_test.load('test')
-    dataset_test.prepare()
-
-    dataset_train.x_data, dataset_test.x_data = dataset_train.x_data / 255, dataset_test.x_data / 255
-    if config.SUBTRACT_PIXEL_MEAN is True:
-        x_train_mean = np.mean(dataset_train.x_data, axis=0)
-        dataset_train.x_data -= x_train_mean
-        dataset_test.x_data -= x_train_mean
-
-    prediction = model.classify(dataset_test.x_data)
-    accuracy = model.evaluate(prediction['label'].values, np.argmax(dataset_test.y_data, axis=1))
+def detect(model, config):
+    dataset = Cifar10Dataset()
+    dataset.feed_config(config)
+    dataset.load('detect')
+    dataset.prepare()
+    prediction = model.detect(dataset.x_data)
+    accuracy = model.evaluate(prediction['label'].values, np.argmax(dataset.y_data, axis=1))
 
 
 ############################################################
@@ -241,5 +168,5 @@ if __name__ == '__main__':
     else:
         model = modelib.NNModel(mode="classify", config=config, logdir=args.logs, resume=0)
         model.load_weights(args.weights)
-        classify(model, config)
+        detect(model, config)
 
