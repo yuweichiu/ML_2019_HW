@@ -4,8 +4,11 @@
 # ignore pycache
 /src/__pycache__
 /hw3/src/__pycache__
+/hw3/__pycache__
 /hw7/src/__pycache__
+/hw7/__pycache__
 /practice/src/__pycache__
+/practice/__pycache__
 
 # ignore vscode and pycharm setting
 /.vscode

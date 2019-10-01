@@ -13,12 +13,13 @@ import os, sys, time
 ROOT_PATH = os.getcwd()
 sys.path.append(ROOT_PATH)
 
-from keras.datasets import cifar10
+# from keras.datasets import cifar10
 # from practice.src import model as modellib
-import practice.src.model as modelib
-import practice.src.utils as utils
-from practice.src.config import Config
+import hw3.src.model as modelib
+import hw3.src.utils as utils
+from hw3.src.config import Config
 import numpy as np
+import pandas as pd
 
 DEFAULT_LOG_PATH = os.path.join(ROOT_PATH, "logs")
 
@@ -38,24 +39,24 @@ set_session(sess)  # set this TensorFlow session as the default session for Kera
 ############################################################
 #  Configurations
 ############################################################
-class Cifar10Config(Config):
+class Hw3Config(Config):
     # The name of your work:
-    NAME = 'cifar10_test'
+    NAME = 'hw3_test'
 
     # Number of class in dataset:
-    N_CLASS = 10
+    N_CLASS = 7
 
     # The shape of image in dataset:
-    IMG_SHAPE = [32, 32, 3]
+    IMG_SHAPE = [48, 48, 1]
 
     # Learning rate:
     LR = 0.001
 
     # Epochs:
-    EPOCHS = 20
+    EPOCHS = 100
 
     # Training batch size:
-    BATCH_SIZE = 256
+    BATCH_SIZE = 128
 
     # Validation rate:
     VALIDATION_RATE = 0.2
@@ -64,36 +65,51 @@ class Cifar10Config(Config):
 ############################################################
 #  Datasets
 ############################################################
-class Cifar10Dataset(utils.Dataset):
+class Hw3Dataset(utils.Dataset):
     def feed_config(self, config):
+        self.config = config
         self.n_class = config.N_CLASS
         self.img_shape = config.IMG_SHAPE
         self.val_rate = config.VALIDATION_RATE
 
     def load(self, usage):
         if usage == 'train':
-            (self.x_data, self.y_data), _ = cifar10.load_data()
-            total = self.x_data.shape[0]
-            self.x_data = self.x_data[0: int(total * (1 - self.val_rate))]
-            self.y_data = self.y_data[0: int(total * (1 - self.val_rate))]
-        elif usage == 'val':
-            (self.x_data, self.y_data), _ = cifar10.load_data()
-            total = self.x_data.shape[0]
-            self.x_data = self.x_data[int(total * (1 - self.val_rate)): ]
-            self.y_data = self.y_data[int(total * (1 - self.val_rate)): ]
+            self.x_data = pd.read_csv('./data/ml2019spring-hw3/train_data.csv', header=None)
+            self.y_data = pd.read_csv('./data/ml2019spring-hw3/train_label.csv', header=None)
         else:
-            _, (self.x_data, self.y_data) = cifar10.load_data()
+            self.x_data = pd.read_csv('./data/ml2019spring-hw3/test_data.csv', header=None)
+
+    def split(self, usage):
+        """
+        Split the dataset as training set or validation set
+        :param usage (str): 'training_set' or 'validation_set'
+        :return:
+        """
+        val_rate = self.config.VALIDATION_RATE
+        total = self.x_data.shape[0]
+        if usage == 'training_set':
+            self.x_train = self.x_data[0: int(total * (1 - val_rate))]
+            self.y_train = self.y_data[0: int(total * (1 - val_rate))]
+        else:
+            if val_rate == 0:
+                pass
+            else:
+                self.x_val = self.x_data[int(total * (1 - self.val_rate)): ]
+                self.y_val = self.y_data[int(total * (1 - self.val_rate)): ]
+
 
 
 ############################################################
 #  Train
 ############################################################
 def train(model, config, augmentation=0, resume=0):
+    dataset = Hw3Dataset()
+    dataset.feed_config(config)
+    dataset.load('train')
+    dataset.prepare()
+
+
     # Training dataset:
-    dataset_train = Cifar10Dataset()
-    dataset_train.feed_config(config)
-    dataset_train.load('train')
-    dataset_train.prepare()
 
     # Validation dataset:
     dataset_val = Cifar10Dataset()

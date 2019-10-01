@@ -55,7 +55,7 @@ class Cifar10Config(Config):
     LR = 0.001
 
     # Epochs:
-    EPOCHS = 20
+    EPOCHS = 3
 
     # Training batch size:
     BATCH_SIZE = 256
@@ -69,48 +69,94 @@ class Cifar10Config(Config):
 ############################################################
 class Cifar10Dataset(utils.Dataset):
     def feed_config(self, f_config):
+        self.config = f_config
         self.n_class = f_config.N_CLASS
         self.img_shape = f_config.IMG_SHAPE
         self.val_rate = f_config.VALIDATION_RATE
 
     def load(self, usage):
+        """
+        Load the data (image, label) from dataset directory.
+        :param usage: 'train' or 'detect'
+        :return:
+        """
         if usage == 'train':
             (self.x_data, self.y_data), _ = cifar10.load_data()
-            total = self.x_data.shape[0]
-            self.x_data = self.x_data[0: int(total * (1 - self.val_rate))]
-            self.y_data = self.y_data[0: int(total * (1 - self.val_rate))]
-        elif usage == 'val':
-            (self.x_data, self.y_data), _ = cifar10.load_data()
-            total = self.x_data.shape[0]
-            self.x_data = self.x_data[int(total * (1 - self.val_rate)): ]
-            self.y_data = self.y_data[int(total * (1 - self.val_rate)): ]
         else:
             _, (self.x_data, self.y_data) = cifar10.load_data()
+
+    def split(self):
+        """
+        Split the dataset as training set or validation set
+        :param usage (str): 'training_set' or 'validation_set'
+        :return:
+        """
+        val_rate = self.config.VALIDATION_RATE
+        total = self.x_data.shape[0]
+
+        # For training set:
+        self.x_train = self.x_data[0: int(total * (1 - val_rate))]
+        self.y_train = self.y_data[0: int(total * (1 - val_rate))]
+        print('Training set: {:d}'.format(int(total * (1 - val_rate))))
+
+        # For validation set:
+        # If validation rate is 0, means don't use validation set.
+        if val_rate == 0:
+            self.use_val = False
+            print("Validation set: N/A")
+            pass
+        else:
+            self.x_val = self.x_data[int(total * (1 - self.val_rate)): ]
+            self.y_val = self.y_data[int(total * (1 - self.val_rate)): ]
+            # self.validation_set = (self.x_val, self.y_val)
+            print('Validation set: {:d}'.format(int(total * (1 - self.val_rate))))
+
+
+    # def load(self, usage):
+    #     if usage == 'train':
+    #         (self.x_data, self.y_data), _ = cifar10.load_data()
+    #         total = self.x_data.shape[0]
+    #         self.x_data = self.x_data[0: int(total * (1 - self.val_rate))]
+    #         self.y_data = self.y_data[0: int(total * (1 - self.val_rate))]
+    #     elif usage == 'val':
+    #         (self.x_data, self.y_data), _ = cifar10.load_data()
+    #         total = self.x_data.shape[0]
+    #         self.x_data = self.x_data[int(total * (1 - self.val_rate)): ]
+    #         self.y_data = self.y_data[int(total * (1 - self.val_rate)): ]
+    #     else:
+    #         _, (self.x_data, self.y_data) = cifar10.load_data()
 
 
 ############################################################
 #  Train
 ############################################################
 def train(model, config, augmentation=0):
-    # Training dataset:
-    dataset_train = Cifar10Dataset()
-    dataset_train.feed_config(config)
-    dataset_train.load('train')
-    dataset_train.prepare()
+    dataset = Cifar10Dataset()
+    dataset.feed_config(config)
+    dataset.load(usage='train')
+    dataset.prepare()
+    # dataset.split()
 
-    # Validation dataset:
-    dataset_val = Cifar10Dataset()
-    dataset_val.feed_config(config)
-    dataset_val.load('val')
-    dataset_val.prepare()
+    # # Training dataset:
+    # dataset_train = Cifar10Dataset()
+    # dataset_train.feed_config(config)
+    # dataset_train.load('train')
+    # dataset_train.prepare()
+    #
+    # # Validation dataset:
+    # dataset_val = Cifar10Dataset()
+    # dataset_val.feed_config(config)
+    # dataset_val.load('val')
+    # dataset_val.prepare()
 
-    dataset_train.x_data, dataset_val.x_data = dataset_train.x_data / 255, dataset_val.x_data / 255
-    if config.SUBTRACT_PIXEL_MEAN is True:
-        x_train_mean = np.mean(dataset_train.x_data, axis=0)
-        dataset_train.x_data -= x_train_mean
-        dataset_val.x_data -= x_train_mean
+    # dataset.x_data, dataset.x_train, dataset.x_val = dataset.x_data / 255, dataset.x_train / 255, dataset.x_val / 255
+    # dataset_train.x_data, dataset_val.x_data = dataset_train.x_data / 255, dataset_val.x_data / 255
+    # if config.SUBTRACT_PIXEL_MEAN is True:
+    #     x_mean = np.mean(dataset.x_data, axis=0)
+    #     dataset.x_train -= x_train_mean
+    #     dataset_val.x_data -= x_train_mean
 
-    model.train(dataset_train, dataset_val, augmentation)
+    model.train(dataset, augmentation)
 
 
 ############################################################

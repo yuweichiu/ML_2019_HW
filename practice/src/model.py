@@ -249,12 +249,16 @@ class NNModel():
         model = Model(inputs=inputs, outputs=outputs)
         return model
 
-    def train(self, training_set, validation_set, augmentation=0):
+    def train(self, dataset, augmentation=0):
         model_summary(self.keras_model, self.config.list, save_dir=os.path.join(self.project, "model_summary.txt"))
+        if dataset.use_val:
+            monitor = 'val_acc'
+        else:
+            monitor = 'acc'
 
         # Prepare callbacks for model saving and for learning rate adjustment.
         checkpoint = ModelCheckpoint(filepath=os.path.join(self.project, self.checkpoint_name),
-                                     monitor='val_acc',
+                                     monitor=monitor,
                                      verbose=1,
                                      save_best_only=self.config.SAVE_BEST_ONLY)
 
@@ -288,10 +292,8 @@ class NNModel():
 
         lr_scheduler = LearningRateScheduler(lr_schedule)
 
-        lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
-                                       cooldown=0,
-                                       patience=5,
-                                       min_lr=0.5e-6)
+        lr_reducer = ReduceLROnPlateau(monitor=monitor, factor=np.sqrt(0.1),
+                                       cooldown=0, patience=5, min_lr=0.5e-6)
 
         tensorboard = TensorBoard(log_dir=self.project, histogram_freq=0, write_graph=True, write_images=False)
 
@@ -299,17 +301,32 @@ class NNModel():
 
         self.keras_model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.config.LR), metrics=['accuracy'])
         self.total_epoch = self.config.EPOCHS + self.init_epoch
+
+        dataset.x_data = dataset.x_data / 255
+        dataset.split()
+        if self.config.SUBTRACT_PIXEL_MEAN is True:
+            x_mean = np.mean(dataset.x_data, axis=0)
+            np.save(os.path.join(self.project, 'mean_img'), x_mean)
+            dataset.x_train -= x_mean
+            if dataset.use_val:
+                dataset.x_val -= x_mean
+        if dataset.use_val:
+            dataset.validation_set = (dataset.x_val, dataset.y_val)
+            validation_steps = dataset.x_val.shape[0] // self.config.BATCH_SIZE
+        else:
+            validation_steps = None
         if augmentation == 0:
             print('Not using data augmentation.')
-            self.train_hist = self.keras_model.fit(
-                training_set.x_data, training_set.y_data,
-                batch_size=self.config.BATCH_SIZE,
-                epochs=self.config.EPOCHS + self.init_epoch,
-                initial_epoch=self.init_epoch,
-                validation_data=(validation_set.x_data, validation_set.y_data),
-                shuffle=True,
-                callbacks=callbacks
-            )
+            if dataset.use_val:
+                self.train_hist = self.keras_model.fit(
+                    dataset.x_train, dataset.y_train,
+                    batch_size=self.config.BATCH_SIZE,
+                    epochs=self.config.EPOCHS + self.init_epoch,
+                    initial_epoch=self.init_epoch,
+                    validation_data=dataset.validation_set,
+                    shuffle=True,
+                    callbacks=callbacks
+                )
         else:
             print('Using real-time data augmentation.')
             # This will do preprocessing and realtime data augmentation:
@@ -354,16 +371,16 @@ class NNModel():
                     data_format = None,
                     # fraction of images reserved for validation (strictly between 0 and 1)
                     validation_split = 0.0)
-            datagen.fit(training_set.x_data)
-            train_flow = datagen.flow(training_set.x_data, training_set.y_data, batch_size=self.config.BATCH_SIZE)
+            datagen.fit(dataset.x_train)
+            train_flow = datagen.flow(dataset.x_train, dataset.y_train, batch_size=self.config.BATCH_SIZE)
 
             self.train_hist = self.keras_model.fit_generator(
                 train_flow,
                 steps_per_epoch=train_flow.n // self.config.BATCH_SIZE,
                 epochs=self.total_epoch,
                 initial_epoch=self.init_epoch,
-                validation_data=(validation_set.x_data, validation_set.y_data),
-                validation_steps=validation_set.x_data.shape[0] // self.config.BATCH_SIZE,
+                validation_data=dataset.validation_set,
+                validation_steps=validation_steps,
                 shuffle=True,
                 callbacks=callbacks
             )

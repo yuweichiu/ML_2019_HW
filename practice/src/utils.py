@@ -16,6 +16,8 @@ class Dataset(object):
         self.n_class = []
         self.img_shape = []
         self.val_rate = []
+        self.use_val = True
+        self.validation_set = None
 
     def prepare(self):
         # Make sure the shape is N, H, W, C:
