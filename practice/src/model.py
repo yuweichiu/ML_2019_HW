@@ -323,16 +323,15 @@ class NNModel():
         # Start training:
         if augmentation == 0:
             print('Not using data augmentation.')
-            if dataset.use_val:
-                self.train_hist = self.keras_model.fit(
-                    dataset.x_train, dataset.y_train,
-                    batch_size=self.config.BATCH_SIZE,
-                    epochs=self.config.EPOCHS + self.init_epoch,
-                    initial_epoch=self.init_epoch,
-                    validation_data=dataset.validation_set,
-                    shuffle=True,
-                    callbacks=callbacks
-                )
+            self.train_hist = self.keras_model.fit(
+                dataset.x_train, dataset.y_train,
+                batch_size=self.config.BATCH_SIZE,
+                epochs=self.config.EPOCHS + self.init_epoch,
+                initial_epoch=self.init_epoch,
+                validation_data=dataset.validation_set,
+                shuffle=True,
+                callbacks=callbacks
+            )
         else:
             print('Using real-time data augmentation.')
             # This will do preprocessing and realtime data augmentation:
