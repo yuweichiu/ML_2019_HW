@@ -56,13 +56,13 @@ class Cifar10Config(Config):
     LR = 0.001
 
     # Epochs:
-    EPOCHS = 3
+    EPOCHS = 20
 
     # Training batch size:
     BATCH_SIZE = 256
 
     # Validation rate:
-    VALIDATION_RATE = 0
+    VALIDATION_RATE = 0.2
 
 
 ############################################################
