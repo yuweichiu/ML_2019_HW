@@ -13,9 +13,10 @@ from keras.datasets import cifar10
 
 class Dataset(object):
     def __init__(self):
-        self.n_class = []
-        self.img_shape = []
-        self.val_rate = []
+        self.n_class = []  # number of class from config
+        self.img_shape = []  # the shape of image from config
+        self.use_val = None  # use validation set or not, if validation rate=0, set as false.
+        self.validation_set = None  # prepare for generating validation set in training process.
 
     def prepare(self):
         # Make sure the shape is N, H, W, C:
@@ -24,6 +25,32 @@ class Dataset(object):
         # One-hot encoding:
         self.y_data = np_utils.to_categorical(self.y_data, self.n_class).astype('float32')
 
+    def split(self):
+        """
+        Split the dataset as training set or validation set
+        :param usage (str): 'training_set' or 'validation_set'
+        :return:
+        """
+        val_rate = self.config.VALIDATION_RATE
+        total = self.x_data.shape[0]
+
+        # For training set:
+        self.x_train = self.x_data[0: int(total * (1 - val_rate))]
+        self.y_train = self.y_data[0: int(total * (1 - val_rate))]
+        print('Training set: {:d}'.format(int(total * (1 - val_rate))))
+
+        # For validation set:
+        # If validation rate is 0, means don't use validation set.
+        if val_rate == 0:
+            self.use_val = False
+            print("Validation set: N/A")
+            pass
+        else:
+            self.use_val = True
+            self.x_val = self.x_data[int(total * (1 - val_rate)): ]
+            self.y_val = self.y_data[int(total * (1 - val_rate)): ]
+            print('Validation set: {:d}'.format(int(total * val_rate)))
+            
 
 def batch_index(b_size, total):
     lid = []

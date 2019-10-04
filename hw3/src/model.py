@@ -122,10 +122,12 @@ class NNModel():
         doubled. Within each stage, the layers have the same number filters and the
         same filter map sizes.
         Features maps sizes:
-        conv1  : 32x32,  16
-        stage 0: 32x32,  64
-        stage 1: 16x16, 128
-        stage 2:  8x8,  256
+        conv1  : 48x48,  16
+        stage 0: 48x48,  64
+        stage 1: 24x24, 128
+        stage 2:  12x12,  256
+        stage 3:  6 x 6,  512
+
 
         # Arguments
             input_shape (tensor): shape of input image tensor
@@ -180,11 +182,11 @@ class NNModel():
                 x = conv(x)
             return x
 
-        if (config.RESNET_DEPTH - 2) % 9 != 0:
-            raise ValueError('depth should be 9n+2 (eg 56 or 110 in [b])')
+        if (config.RESNET_DEPTH - 2) % 12 != 0:
+            raise ValueError('depth should be 12n+2 (eg 50 or 110 in [b])')
         # Start model definition.
         num_filters_in = 16
-        num_res_blocks = int((config.RESNET_DEPTH - 2) / 9)
+        num_res_blocks = int((config.RESNET_DEPTH - 2) / 12)
 
         inputs = Input(shape=config.IMG_SHAPE)
         # v2 performs Conv2D with BN-ReLU on input before splitting into 2 paths
@@ -193,7 +195,7 @@ class NNModel():
                          conv_first=True)
 
         # Instantiate the stack of residual units
-        for stage in range(3):
+        for stage in range(4):
             for res_block in range(num_res_blocks):
                 activation = 'relu'
                 batch_normalization = True
@@ -239,7 +241,7 @@ class NNModel():
         # v2 has BN-ReLU before Pooling
         x = BatchNormalization()(x)
         x = Activation('relu')(x)
-        x = AvgPool2D(pool_size=8)(x)
+        x = AvgPool2D(pool_size=6)(x)
         y = Flatten()(x)
         outputs = Dense(config.N_CLASS,
                         activation='softmax',
@@ -249,12 +251,34 @@ class NNModel():
         model = Model(inputs=inputs, outputs=outputs)
         return model
 
-    def train(self, training_set, validation_set, augmentation=0):
+    def train(self, dataset, augmentation=0):
         model_summary(self.keras_model, self.config.list, save_dir=os.path.join(self.project, "model_summary.txt"))
+
+        # Normalize dataset and split the dataset according to validation set:
+        dataset.x_data = dataset.x_data / 255
+        dataset.split()
+        if self.config.SUBTRACT_PIXEL_MEAN is True:
+            x_mean = np.mean(dataset.x_data, axis=0)
+            np.save(os.path.join(self.project, 'mean_img'), x_mean)
+            dataset.x_train -= x_mean
+            if dataset.use_val:
+                dataset.x_val -= x_mean
+        if dataset.use_val:
+            dataset.validation_set = (dataset.x_val, dataset.y_val)
+            validation_steps = dataset.x_val.shape[0] // self.config.BATCH_SIZE
+        else:
+            dataset.validation_set = None
+            validation_steps = None
+
+        if dataset.use_val is True:
+            monitor = 'val_acc'
+        else:
+            monitor = 'acc'
+        print("Using {:s} as the monitor.".format(monitor))
 
         # Prepare callbacks for model saving and for learning rate adjustment.
         checkpoint = ModelCheckpoint(filepath=os.path.join(self.project, self.checkpoint_name),
-                                     monitor='val_acc',
+                                     monitor=monitor,
                                      verbose=1,
                                      save_best_only=self.config.SAVE_BEST_ONLY)
 
@@ -274,39 +298,39 @@ class NNModel():
             # Returns
                 lr (float32): learning rate
             """
-            lr = 1e-3
-            if epoch > 180:
-                lr *= 0.5e-3
-            elif epoch > 160:
-                lr *= 1e-3
-            elif epoch > 120:
-                lr *= 1e-2
-            elif epoch > 80:
+            lr = self.config.LR
+            if epoch > 150:
                 lr *= 1e-1
+            elif epoch > 110:
+                lr *= 0.005
+            elif epoch > 80:
+                lr *= 0.01
+            elif epoch > 50:
+                lr *= 0.1
             print('Learning rate: ', lr)
             return lr
 
         lr_scheduler = LearningRateScheduler(lr_schedule)
 
-        lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
-                                       cooldown=0,
-                                       patience=5,
-                                       min_lr=0.5e-6)
+        lr_reducer = ReduceLROnPlateau(monitor=monitor, factor=np.sqrt(0.1),
+                                       cooldown=0, patience=5, min_lr=0.5e-6)
 
         tensorboard = TensorBoard(log_dir=self.project, histogram_freq=0, write_graph=True, write_images=False)
 
         callbacks = [checkpoint, lr_reducer, lr_scheduler, tensorboard, csv_logger]
 
-        self.keras_model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.config.LR), metrics=['accuracy'])
+        self.keras_model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=lr_schedule(0)), metrics=['accuracy'])
         self.total_epoch = self.config.EPOCHS + self.init_epoch
+        
+        # Start training:
         if augmentation == 0:
             print('Not using data augmentation.')
             self.train_hist = self.keras_model.fit(
-                training_set.x_data, training_set.y_data,
+                dataset.x_train, dataset.y_train,
                 batch_size=self.config.BATCH_SIZE,
                 epochs=self.config.EPOCHS + self.init_epoch,
                 initial_epoch=self.init_epoch,
-                validation_data=(validation_set.x_data, validation_set.y_data),
+                validation_data=dataset.validation_set,
                 shuffle=True,
                 callbacks=callbacks
             )
@@ -314,30 +338,16 @@ class NNModel():
             print('Using real-time data augmentation.')
             # This will do preprocessing and realtime data augmentation:
             datagen = ImageDataGenerator(
-                    # set input mean to 0 over the dataset
-                    featurewise_center = False,
-                    # set each sample mean to 0
-                    samplewise_center = False,
-                    # divide inputs by std of dataset
-                    featurewise_std_normalization = False,
-                    # divide each input by its std
-                    samplewise_std_normalization = False,
-                    # apply ZCA whitening
-                    zca_whitening = False,
-                    # epsilon for ZCA whitening
-                    zca_epsilon = 1e-06,
                     # randomly rotate images in the range (deg 0 to 180)
-                    rotation_range = 0,
+                    rotation_range = 10,
                     # randomly shift images horizontally
-                    width_shift_range = 0.1,
+                    width_shift_range = 0.2,
                     # randomly shift images vertically
-                    height_shift_range = 0.1,
+                    height_shift_range = 0.2,
                     # set range for random shear
                     shear_range = 0.,
                     # set range for random zoom
-                    zoom_range = 0.,
-                    # set range for random channel shifts
-                    channel_shift_range = 0.,
+                    zoom_range = 0.2,
                     # set mode for filling points outside the input boundaries
                     fill_mode = 'nearest',
                     # value used for fill_mode = "constant"
@@ -345,25 +355,17 @@ class NNModel():
                     # randomly flip images
                     horizontal_flip = True,
                     # randomly flip images
-                    vertical_flip = False,
-                    # set rescaling factor (applied before any other transformation)
-                    rescale = None,
-                    # set function that will be applied on each input
-                    preprocessing_function = None,
-                    # image data format, either "channels_first" or "channels_last"
-                    data_format = None,
-                    # fraction of images reserved for validation (strictly between 0 and 1)
-                    validation_split = 0.0)
-            datagen.fit(training_set.x_data)
-            train_flow = datagen.flow(training_set.x_data, training_set.y_data, batch_size=self.config.BATCH_SIZE)
+                    vertical_flip = False)
+            datagen.fit(dataset.x_train)
+            train_flow = datagen.flow(dataset.x_train, dataset.y_train, batch_size=self.config.BATCH_SIZE)
 
             self.train_hist = self.keras_model.fit_generator(
                 train_flow,
                 steps_per_epoch=train_flow.n // self.config.BATCH_SIZE,
                 epochs=self.total_epoch,
                 initial_epoch=self.init_epoch,
-                validation_data=(validation_set.x_data, validation_set.y_data),
-                validation_steps=validation_set.x_data.shape[0] // self.config.BATCH_SIZE,
+                validation_data=dataset.validation_set,
+                validation_steps=validation_steps,
                 shuffle=True,
                 callbacks=callbacks
             )
@@ -431,12 +433,16 @@ class NNModel():
         init_epoch = resume_md_name.split('_epoch')[-1].split('.')[0]
         self.init_epoch = int(init_epoch)
 
-    def classify(self, images):
+    def detect(self, images):
+        images = images / 255
+        if self.config.SUBTRACT_PIXEL_MEAN is True:
+            x_mean = np.load(os.path.join(self.project, 'mean_img.npy'))
+            images -= x_mean
         predict_prob = self.keras_model.predict(images, verbose=1)
         predict_id = np.argmax(predict_prob, axis=1)
         out_df = pd.DataFrame({'id': list(range(predict_id.shape[0])), 'label': predict_id})
-        out_df.to_csv(os.path.join(self.project, "classify_" + self.model_name + ".csv"), index=False)
-        print("Saved prediction to " + os.path.abspath(os.path.join(self.project, "classify_" + self.model_name + ".csv")))
+        out_df.to_csv(os.path.join(self.project, "detect_" + self.model_name + ".csv"), index=False)
+        print("Saved prediction to " + os.path.abspath(os.path.join(self.project, "detect_" + self.model_name + ".csv")))
         return out_df
 
     def evaluate(self, prediction, labels):

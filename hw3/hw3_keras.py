@@ -3,10 +3,10 @@
 Created on 2019/9/29 下午 05:17
 @author: Ivan Y.W.Chiu
 
-python ./practice/hw3_keras.py train --logs=./practice/logs
-python ./practice/hw3_keras.py train --logs=./practice/logs --augmentation=1
-python ./practice/hw3_keras.py train --logs=./practice/logs --augmentation=1 --resume=1 --weights=./practice/logs/D20190929T2220/cifar10_test_epoch020.h5
-python ./practice/hw3_keras.py classify --logs=./practice/logs --weights=./practice/logs/D20190930T0035/cifar10_test_epoch020.h5
+python ./hw3/hw3_keras.py train --logs=./hw3/logs
+python ./hw3/hw3_keras.py train --logs=./hw3/logs --augmentation=1
+python ./hw3/hw3_keras.py train --logs=./hw3/logs --augmentation=1 --resume=1 --weights=./hw3/logs/D20190929T2220/cifar10_test_epoch020.h5
+python ./hw3/hw3_keras.py detect --logs=./hw3/logs --weights=./hw3/logs/D20190930T0035/cifar10_test_epoch020.h5
 
 """
 import os, sys, time
@@ -14,7 +14,6 @@ ROOT_PATH = os.getcwd()
 sys.path.append(ROOT_PATH)
 
 # from keras.datasets import cifar10
-# from practice.src import model as modellib
 import hw3.src.model as modelib
 import hw3.src.utils as utils
 from hw3.src.config import Config
@@ -36,12 +35,16 @@ tf_config.gpu_options.allow_growth = True  # dynamically grow the memory used on
 sess = tf.Session(config=tf_config)
 set_session(sess)  # set this TensorFlow session as the default session for Keras
 
+
 ############################################################
 #  Configurations
 ############################################################
 class Hw3Config(Config):
+    # ResNetv2 depth (12n+2): 
+    RESNET_DEPTH = 50
+
     # The name of your work:
-    NAME = 'hw3_test'
+    NAME = 'hw3_ResNet{:s}v2'.format(str(RESNET_DEPTH))
 
     # Number of class in dataset:
     N_CLASS = 7
@@ -53,10 +56,10 @@ class Hw3Config(Config):
     LR = 0.001
 
     # Epochs:
-    EPOCHS = 100
+    EPOCHS = 200
 
     # Training batch size:
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
 
     # Validation rate:
     VALIDATION_RATE = 0.2
@@ -73,30 +76,18 @@ class Hw3Dataset(utils.Dataset):
         self.val_rate = config.VALIDATION_RATE
 
     def load(self, usage):
+        """
+        Load the data (image, label) from dataset directory.
+        :param usage: 'train' or 'detect'
+        :return:
+        """
         if usage == 'train':
             self.x_data = pd.read_csv('./data/ml2019spring-hw3/train_data.csv', header=None)
             self.y_data = pd.read_csv('./data/ml2019spring-hw3/train_label.csv', header=None)
+            self.x_data, self.y_data = self.x_data.values, self.y_data.values
         else:
             self.x_data = pd.read_csv('./data/ml2019spring-hw3/test_data.csv', header=None)
-
-    def split(self, usage):
-        """
-        Split the dataset as training set or validation set
-        :param usage (str): 'training_set' or 'validation_set'
-        :return:
-        """
-        val_rate = self.config.VALIDATION_RATE
-        total = self.x_data.shape[0]
-        if usage == 'training_set':
-            self.x_train = self.x_data[0: int(total * (1 - val_rate))]
-            self.y_train = self.y_data[0: int(total * (1 - val_rate))]
-        else:
-            if val_rate == 0:
-                pass
-            else:
-                self.x_val = self.x_data[int(total * (1 - self.val_rate)): ]
-                self.y_val = self.y_data[int(total * (1 - self.val_rate)): ]
-
+            self.x_data = self.x_data.values
 
 
 ############################################################
@@ -105,37 +96,22 @@ class Hw3Dataset(utils.Dataset):
 def train(model, config, augmentation=0, resume=0):
     dataset = Hw3Dataset()
     dataset.feed_config(config)
-    dataset.load('train')
+    dataset.load(usage='train')
+    dataset.prepare()
+    model.train(dataset, augmentation)
+
+
+############################################################
+#  Detection
+############################################################
+def detect(model, config):
+    # Testing dataset:
+    dataset = Hw3Dataset()
+    dataset.feed_config(config)
+    dataset.load(usage='detect')
     dataset.prepare()
 
-
-    # Training dataset:
-
-    # Validation dataset:
-    dataset_val = Cifar10Dataset()
-    dataset_val.feed_config(config)
-    dataset_val.load('val')
-    dataset_val.prepare()
-
-    model.train(dataset_train, dataset_val, augmentation)
-    # model.save_training_log(model.train_hist, resume)
-    # model.plot_training_hist(target='loss')
-    # model.plot_training_hist(target='acc')
-
-
-############################################################
-#  Classification
-############################################################
-def classify(model, config):
-    # Testing dataset:
-    dataset_test = Cifar10Dataset()
-    dataset_test.feed_config(config)
-    dataset_test.load('test')
-    dataset_test.prepare()
-
-    prediction = model.classify(dataset_test.x_data)
-    accuracy = model.evaluate(prediction['label'].values, np.argmax(dataset_test.y_data, axis=1))
-
+    prediction = model.detect(dataset_test.x_data)
 
 ############################################################
 #  Main
@@ -143,7 +119,7 @@ def classify(model, config):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(
-        description='Train Cifar10'
+        description='Train HW3 datasets'
     )
     parser.add_argument("mode",
                         metavar="<mode>",
@@ -168,11 +144,13 @@ if __name__ == '__main__':
 
     # Configurations
     if args.mode == "train":
-        config = Cifar10Config()
+        config = Hw3Config()
+        config_list = config.display(print_out=False)
     else:
-        class ClassifyConfig(Cifar10Config):
+        class ClassifyConfig(Hw3Config):
             BATCH_SIZE = 1
         config = ClassifyConfig()
+        config_list = config.display(print_out=False)
 
     if args.mode == "train":
         model = modelib.NNModel(mode="training", config=config, logdir=args.logs, resume=int(args.resume))
@@ -185,7 +163,7 @@ if __name__ == '__main__':
     else:
         model = modelib.NNModel(mode="classify", config=config, logdir=args.logs, resume=0)
         model.load_weights(args.weights)
-        classify(model, config)
+        detect(model, config)
 
 
 
