@@ -1,0 +1,49 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 48, 48, 1)         | (4, 4, 1, 64)        | (2, 2)   | same     | (None, 24, 24, 64)  
+batch_normalization_1     | (None, 24, 24, 64)        |                      |          |          |                     
+leaky_re_lu_1            
+conv2d_2                  | (None, 24, 24, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_2     | (None, 24, 24, 64)        |                      |          |          |                     
+leaky_re_lu_2            
+max_pooling2d_1           | (None, 24, 24, 64)        | (2, 2)               | (2, 2)   | same     | (None, 12, 12, 64)  
+conv2d_3                  | (None, 12, 12, 64)        | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_3     | (None, 12, 12, 128)       |                      |          |          |                     
+leaky_re_lu_3            
+conv2d_4                  | (None, 12, 12, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_4     | (None, 12, 12, 128)       |                      |          |          |                     
+leaky_re_lu_4            
+max_pooling2d_2           | (None, 12, 12, 128)       | (2, 2)               | (2, 2)   | same     | (None, 6, 6, 128)   
+conv2d_5                  | (None, 6, 6, 128)         | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_5     | (None, 6, 6, 256)         |                      |          |          |                     
+leaky_re_lu_5            
+conv2d_6                  | (None, 6, 6, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_6     | (None, 6, 6, 256)         |                      |          |          |                     
+leaky_re_lu_6            
+max_pooling2d_3           | (None, 6, 6, 256)         | (2, 2)               | (2, 2)   | same     | (None, 3, 3, 256)   
+flatten_1                 |                           |                      |          |          |                     
+dense_1                   | (None, 2304)              | 1024                 |          |          | (None, 1024)        
+batch_normalization_7     | (None, 1024)              |                      |          |          |                     
+leaky_re_lu_7            
+dropout_1                 | 0.5                       |                      |          |          |                     
+dense_2                   | (None, 1024)              | 512                  |          |          | (None, 512)         
+batch_normalization_8     | (None, 512)               |                      |          |          |                     
+leaky_re_lu_8            
+dropout_2                 | 0.5                       |                      |          |          |                     
+dense_3                   | (None, 512)               | 7                    |          |          | (None, 7)           
+activation_1/Softmax:0    |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------
+Batch_size: 256
+Bias_initializer: Constant 0.01
+Epoch: 100
+Learning_Rate: 0.001
+Validate_Rate: 0.2
+Weight_initializer: truncate_normal M:0/S:0.02
+-------------------------------------------------------------------------------------------------------------------------
+5-FOLD VALIDATION ACCURACY
+1-fold: 62.0602%
+2-fold: 63.4342%
+3-fold: 62.6436%
+4-fold: 62.8873%
+5-fold: 63.4160%
+AVG: 62.8883%

@@ -1,0 +1,50 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 32, 32, 3)         | (3, 3, 3, 64)        | (1, 1)   | same     | (None, 32, 32, 64)  
+activation_1/Relu:0       |                           |                      |          |          |                     
+conv2d_2                  | (None, 32, 32, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 32, 32, 64)  
+activation_2/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_1           | (None, 32, 32, 64)        | (2, 2)               | (2, 2)   | same     | (None, 16, 16, 64)  
+conv2d_3                  | (None, 16, 16, 64)        | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_3/Relu:0       |                           |                      |          |          |                     
+conv2d_4                  | (None, 16, 16, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_4/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_2           | (None, 16, 16, 128)       | (2, 2)               | (2, 2)   | same     | (None, 8, 8, 128)   
+conv2d_5                  | (None, 8, 8, 128)         | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 8, 8, 256)   
+activation_5/Relu:0       |                           |                      |          |          |                     
+conv2d_6                  | (None, 8, 8, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 8, 8, 256)   
+activation_6/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_3           | (None, 8, 8, 256)         | (2, 2)               | (2, 2)   | same     | (None, 4, 4, 256)   
+conv2d_7                  | (None, 4, 4, 256)         | (3, 3, 256, 512)     | (1, 1)   | same     | (None, 4, 4, 512)   
+activation_7/Relu:0       |                           |                      |          |          |                     
+conv2d_8                  | (None, 4, 4, 512)         | (3, 3, 512, 512)     | (1, 1)   | same     | (None, 4, 4, 512)   
+flatten_1                 | (None, 4, 4, 512)         |                      |          |          | (None, 8192)        
+dense_1                   | (None, 8192)              | 2048                 |          |          | (None, 2048)        
+activation_8/Relu:0       |                           |                      |          |          |                     
+dense_2                   | (None, 2048)              | 256                  |          |          | (None, 256)         
+activation_9/Relu:0       |                           |                      |          |          |                     
+dense_3                   | (None, 256)               | 2048                 |          |          | (None, 2048)        
+activation_10/Relu:0      |                           |                      |          |          |                     
+dense_4                   | (None, 2048)              | 8192                 |          |          | (None, 8192)        
+activation_11/Relu:0      |                           |                      |          |          |                     
+reshape_1                 | (None, 8192)              |                      |          |          | (None, 4, 4, 512)   
+conv2d_transpose_1        | (None, 4, 4, 512)         | (3, 3, 512, 512)     | (1, 1)   | same     | (None, 4, 4, 512)   
+activation_12/Relu:0      |                           |                      |          |          |                     
+conv2d_transpose_2        | (None, 4, 4, 512)         | (3, 3, 512, 512)     | (1, 1)   | same     | (None, 4, 4, 512)   
+up_sampling2d_1           | (None, 4, 4, 512)         |                      | (2, 2)   |          | (None, 8, 8, 512)   
+conv2d_transpose_3        | (None, 8, 8, 512)         | (3, 3, 256, 512)     | (1, 1)   | same     | (None, 8, 8, 256)   
+activation_13/Relu:0      |                           |                      |          |          |                     
+conv2d_transpose_4        | (None, 8, 8, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 8, 8, 256)   
+up_sampling2d_2           | (None, 8, 8, 256)         |                      | (2, 2)   |          | (None, 16, 16, 256) 
+conv2d_transpose_5        | (None, 16, 16, 256)       | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_14/Relu:0      |                           |                      |          |          |                     
+conv2d_transpose_6        | (None, 16, 16, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_15/Relu:0      |                           |                      |          |          |                     
+up_sampling2d_3           | (None, 16, 16, 128)       |                      | (2, 2)   |          | (None, 32, 32, 128) 
+conv2d_transpose_7        | (None, 32, 32, 128)       | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 32, 32, 64)  
+activation_16/Relu:0      |                           |                      |          |          |                     
+conv2d_transpose_8        | (None, 32, 32, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 32, 32, 64)  
+activation_17/Relu:0      |                           |                      |          |          |                     
+conv2d_transpose_9        | (None, 32, 32, 64)        | (3, 3, 3, 64)        | (1, 1)   | same     | (None, 32, 32, 3)   
+activation_18/Sigmoid:0   |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------

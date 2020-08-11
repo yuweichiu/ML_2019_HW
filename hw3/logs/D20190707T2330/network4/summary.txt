@@ -1,0 +1,56 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 48, 48, 1)         | (3, 3, 1, 64)        | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_1     | (None, 48, 48, 64)        |                      |          |          |                     
+activation_1/Relu:0       |                           |                      |          |          |                     
+conv2d_2                  | (None, 48, 48, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_2     | (None, 48, 48, 64)        |                      |          |          |                     
+activation_2/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_1           | (None, 48, 48, 64)        | (2, 2)               | (2, 2)   | same     | (None, 24, 24, 64)  
+conv2d_3                  | (None, 24, 24, 64)        | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_3     | (None, 24, 24, 128)       |                      |          |          |                     
+activation_3/Relu:0       |                           |                      |          |          |                     
+conv2d_4                  | (None, 24, 24, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_4     | (None, 24, 24, 128)       |                      |          |          |                     
+activation_4/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_2           | (None, 24, 24, 128)       | (2, 2)               | (2, 2)   | same     | (None, 12, 12, 128) 
+conv2d_5                  | (None, 12, 12, 128)       | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_5     | (None, 12, 12, 256)       |                      |          |          |                     
+activation_5/Relu:0       |                           |                      |          |          |                     
+conv2d_6                  | (None, 12, 12, 256)       | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_6     | (None, 12, 12, 256)       |                      |          |          |                     
+activation_6/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_3           | (None, 12, 12, 256)       | (2, 2)               | (2, 2)   | same     | (None, 6, 6, 256)   
+conv2d_7                  | (None, 6, 6, 256)         | (3, 3, 256, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_7     | (None, 6, 6, 512)         |                      |          |          |                     
+activation_7/Relu:0       |                           |                      |          |          |                     
+conv2d_8                  | (None, 6, 6, 512)         | (3, 3, 512, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_8     | (None, 6, 6, 512)         |                      |          |          |                     
+activation_8/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_4           | (None, 6, 6, 512)         | (2, 2)               | (2, 2)   | same     | (None, 3, 3, 512)   
+flatten_1                 |                           |                      |          |          |                     
+dense_1                   | (None, 4608)              | 1024                 |          |          | (None, 1024)        
+batch_normalization_9     | (None, 1024)              |                      |          |          |                     
+activation_9/Relu:0       |                           |                      |          |          |                     
+dropout_1                 | 0.5                       |                      |          |          |                     
+dense_2                   | (None, 1024)              | 512                  |          |          | (None, 512)         
+batch_normalization_10    | (None, 512)               |                      |          |          |                     
+activation_10/Relu:0      |                           |                      |          |          |                     
+dropout_2                 | 0.5                       |                      |          |          |                     
+dense_3                   | (None, 512)               | 7                    |          |          | (None, 7)           
+activation_11/Softmax:0   |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------
+Batch_size: 256
+Bias_initializer: Constant 0.01
+Epoch: 100
+Learning_Rate: 0.001
+Validate_Rate: 0.2
+Weight_initializer: truncate_normal M:0/S:0.02
+-------------------------------------------------------------------------------------------------------------------------
+5-FOLD VALIDATION ACCURACY
+1-fold: 63.7922%
+2-fold: 65.5487%
+3-fold: 65.3054%
+4-fold: 65.3117%
+5-fold: 65.9091%
+AVG: 65.1734%

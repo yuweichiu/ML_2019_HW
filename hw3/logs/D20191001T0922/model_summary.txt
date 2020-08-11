@@ -1,0 +1,156 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 48, 48, 1)         | (3, 3, 1, 16)        | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_1     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_1/Relu:0       |                           |                      |          |          |                     
+conv2d_2                  | (None, 48, 48, 16)        | (1, 1, 16, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_2     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_2/Relu:0       |                           |                      |          |          |                     
+conv2d_3                  | (None, 48, 48, 16)        | (3, 3, 16, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_3     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_3/Relu:0       |                           |                      |          |          |                     
+conv2d_5                  | (None, 48, 48, 16)        | (1, 1, 16, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+conv2d_4                  | (None, 48, 48, 16)        | (1, 1, 16, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_4     | (None, 48, 48, 64)        |                      |          |          |                     
+activation_4/Relu:0       |                           |                      |          |          |                     
+conv2d_6                  | (None, 48, 48, 64)        | (1, 1, 64, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_5     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_5/Relu:0       |                           |                      |          |          |                     
+conv2d_7                  | (None, 48, 48, 16)        | (3, 3, 16, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_6     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_6/Relu:0       |                           |                      |          |          |                     
+conv2d_8                  | (None, 48, 48, 16)        | (1, 1, 16, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_7     | (None, 48, 48, 64)        |                      |          |          |                     
+activation_7/Relu:0       |                           |                      |          |          |                     
+conv2d_9                  | (None, 48, 48, 64)        | (1, 1, 64, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_8     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_8/Relu:0       |                           |                      |          |          |                     
+conv2d_10                 | (None, 48, 48, 16)        | (3, 3, 16, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_9     | (None, 48, 48, 16)        |                      |          |          |                     
+activation_9/Relu:0       |                           |                      |          |          |                     
+conv2d_11                 | (None, 48, 48, 16)        | (1, 1, 16, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_10    | (None, 48, 48, 64)        |                      |          |          |                     
+activation_10/Relu:0      |                           |                      |          |          |                     
+conv2d_12                 | (None, 48, 48, 64)        | (1, 1, 64, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_11    | (None, 48, 48, 16)        |                      |          |          |                     
+activation_11/Relu:0      |                           |                      |          |          |                     
+conv2d_13                 | (None, 48, 48, 16)        | (3, 3, 16, 16)       | (1, 1)   | same     | (None, 48, 48, 16)  
+batch_normalization_12    | (None, 48, 48, 16)        |                      |          |          |                     
+activation_12/Relu:0      |                           |                      |          |          |                     
+conv2d_14                 | (None, 48, 48, 16)        | (1, 1, 16, 64)       | (1, 1)   | same     | (None, 48, 48, 64)  
+batch_normalization_13    | (None, 48, 48, 64)        |                      |          |          |                     
+activation_13/Relu:0      |                           |                      |          |          |                     
+conv2d_15                 | (None, 48, 48, 64)        | (1, 1, 64, 64)       | (2, 2)   | same     | (None, 24, 24, 64)  
+batch_normalization_14    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_14/Relu:0      |                           |                      |          |          |                     
+conv2d_16                 | (None, 24, 24, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_15    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_15/Relu:0      |                           |                      |          |          |                     
+conv2d_18                 | (None, 48, 48, 64)        | (1, 1, 64, 128)      | (2, 2)   | same     | (None, 24, 24, 128) 
+conv2d_17                 | (None, 24, 24, 64)        | (1, 1, 64, 128)      | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_16    | (None, 24, 24, 128)       |                      |          |          |                     
+activation_16/Relu:0      |                           |                      |          |          |                     
+conv2d_19                 | (None, 24, 24, 128)       | (1, 1, 128, 64)      | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_17    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_17/Relu:0      |                           |                      |          |          |                     
+conv2d_20                 | (None, 24, 24, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_18    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_18/Relu:0      |                           |                      |          |          |                     
+conv2d_21                 | (None, 24, 24, 64)        | (1, 1, 64, 128)      | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_19    | (None, 24, 24, 128)       |                      |          |          |                     
+activation_19/Relu:0      |                           |                      |          |          |                     
+conv2d_22                 | (None, 24, 24, 128)       | (1, 1, 128, 64)      | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_20    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_20/Relu:0      |                           |                      |          |          |                     
+conv2d_23                 | (None, 24, 24, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_21    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_21/Relu:0      |                           |                      |          |          |                     
+conv2d_24                 | (None, 24, 24, 64)        | (1, 1, 64, 128)      | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_22    | (None, 24, 24, 128)       |                      |          |          |                     
+activation_22/Relu:0      |                           |                      |          |          |                     
+conv2d_25                 | (None, 24, 24, 128)       | (1, 1, 128, 64)      | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_23    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_23/Relu:0      |                           |                      |          |          |                     
+conv2d_26                 | (None, 24, 24, 64)        | (3, 3, 64, 64)       | (1, 1)   | same     | (None, 24, 24, 64)  
+batch_normalization_24    | (None, 24, 24, 64)        |                      |          |          |                     
+activation_24/Relu:0      |                           |                      |          |          |                     
+conv2d_27                 | (None, 24, 24, 64)        | (1, 1, 64, 128)      | (1, 1)   | same     | (None, 24, 24, 128) 
+batch_normalization_25    | (None, 24, 24, 128)       |                      |          |          |                     
+activation_25/Relu:0      |                           |                      |          |          |                     
+conv2d_28                 | (None, 24, 24, 128)       | (1, 1, 128, 128)     | (2, 2)   | same     | (None, 12, 12, 128) 
+batch_normalization_26    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_26/Relu:0      |                           |                      |          |          |                     
+conv2d_29                 | (None, 12, 12, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_27    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_27/Relu:0      |                           |                      |          |          |                     
+conv2d_31                 | (None, 24, 24, 128)       | (1, 1, 128, 256)     | (2, 2)   | same     | (None, 12, 12, 256) 
+conv2d_30                 | (None, 12, 12, 128)       | (1, 1, 128, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_28    | (None, 12, 12, 256)       |                      |          |          |                     
+activation_28/Relu:0      |                           |                      |          |          |                     
+conv2d_32                 | (None, 12, 12, 256)       | (1, 1, 256, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_29    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_29/Relu:0      |                           |                      |          |          |                     
+conv2d_33                 | (None, 12, 12, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_30    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_30/Relu:0      |                           |                      |          |          |                     
+conv2d_34                 | (None, 12, 12, 128)       | (1, 1, 128, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_31    | (None, 12, 12, 256)       |                      |          |          |                     
+activation_31/Relu:0      |                           |                      |          |          |                     
+conv2d_35                 | (None, 12, 12, 256)       | (1, 1, 256, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_32    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_32/Relu:0      |                           |                      |          |          |                     
+conv2d_36                 | (None, 12, 12, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_33    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_33/Relu:0      |                           |                      |          |          |                     
+conv2d_37                 | (None, 12, 12, 128)       | (1, 1, 128, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_34    | (None, 12, 12, 256)       |                      |          |          |                     
+activation_34/Relu:0      |                           |                      |          |          |                     
+conv2d_38                 | (None, 12, 12, 256)       | (1, 1, 256, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_35    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_35/Relu:0      |                           |                      |          |          |                     
+conv2d_39                 | (None, 12, 12, 128)       | (3, 3, 128, 128)     | (1, 1)   | same     | (None, 12, 12, 128) 
+batch_normalization_36    | (None, 12, 12, 128)       |                      |          |          |                     
+activation_36/Relu:0      |                           |                      |          |          |                     
+conv2d_40                 | (None, 12, 12, 128)       | (1, 1, 128, 256)     | (1, 1)   | same     | (None, 12, 12, 256) 
+batch_normalization_37    | (None, 12, 12, 256)       |                      |          |          |                     
+activation_37/Relu:0      |                           |                      |          |          |                     
+conv2d_41                 | (None, 12, 12, 256)       | (1, 1, 256, 256)     | (2, 2)   | same     | (None, 6, 6, 256)   
+batch_normalization_38    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_38/Relu:0      |                           |                      |          |          |                     
+conv2d_42                 | (None, 6, 6, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_39    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_39/Relu:0      |                           |                      |          |          |                     
+conv2d_44                 | (None, 12, 12, 256)       | (1, 1, 256, 512)     | (2, 2)   | same     | (None, 6, 6, 512)   
+conv2d_43                 | (None, 6, 6, 256)         | (1, 1, 256, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_40    | (None, 6, 6, 512)         |                      |          |          |                     
+activation_40/Relu:0      |                           |                      |          |          |                     
+conv2d_45                 | (None, 6, 6, 512)         | (1, 1, 512, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_41    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_41/Relu:0      |                           |                      |          |          |                     
+conv2d_46                 | (None, 6, 6, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_42    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_42/Relu:0      |                           |                      |          |          |                     
+conv2d_47                 | (None, 6, 6, 256)         | (1, 1, 256, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_43    | (None, 6, 6, 512)         |                      |          |          |                     
+activation_43/Relu:0      |                           |                      |          |          |                     
+conv2d_48                 | (None, 6, 6, 512)         | (1, 1, 512, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_44    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_44/Relu:0      |                           |                      |          |          |                     
+conv2d_49                 | (None, 6, 6, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_45    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_45/Relu:0      |                           |                      |          |          |                     
+conv2d_50                 | (None, 6, 6, 256)         | (1, 1, 256, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_46    | (None, 6, 6, 512)         |                      |          |          |                     
+activation_46/Relu:0      |                           |                      |          |          |                     
+conv2d_51                 | (None, 6, 6, 512)         | (1, 1, 512, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_47    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_47/Relu:0      |                           |                      |          |          |                     
+conv2d_52                 | (None, 6, 6, 256)         | (3, 3, 256, 256)     | (1, 1)   | same     | (None, 6, 6, 256)   
+batch_normalization_48    | (None, 6, 6, 256)         |                      |          |          |                     
+activation_48/Relu:0      |                           |                      |          |          |                     
+conv2d_53                 | (None, 6, 6, 256)         | (1, 1, 256, 512)     | (1, 1)   | same     | (None, 6, 6, 512)   
+batch_normalization_49    | (None, 6, 6, 512)         |                      |          |          |                     
+activation_49/Relu:0      |                           |                      |          |          |                     
+flatten_1                 | (None, 1, 1, 512)         |                      |          |          | (None, 512)         
+dense_1                   | (None, 512)               | 7                    |          |          | (None, 7)           
+-------------------------------------------------------------------------------------------------------------------------

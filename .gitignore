@@ -15,9 +15,9 @@
 /.idea
 
 # ignore /logs
-/hw3/logs
-/hw7/logs
-/practice/logs
+/hw3/logs/**/*.h5
+/hw7/logs/**/*.h5
+/practice/logs/**/*.h5
 
 # ignore jupyter notebook checkpoint:
 /practice/notebook/.ipynb_checkpoints

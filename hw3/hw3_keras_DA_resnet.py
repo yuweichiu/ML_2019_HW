@@ -72,7 +72,7 @@ x_train = np.reshape(x_train, [-1, 48, 48, 1]).astype(np.float32)
 x_test = np.reshape(x_test, [-1, 48, 48, 1]).astype(np.float32)
 
 # validation:
-pa4val = 0
+pa4val = 0.2
 if pa4val != 0:
     x_valid = x_train[int(x_train.shape[0] * (1 - pa4val)): ]
     y_valid = y_train[int(x_train.shape[0] * (1 - pa4val)): ]
@@ -402,7 +402,6 @@ else:
             callbacks=callbacks
         )
 
-
 if pa4val != 0:
     # Score trained model.
     scores = model.evaluate(x_valid, y_valid, verbose=1)
@@ -430,3 +429,32 @@ ax.legend()
 plt.savefig(os.path.join(project, 'training_process.png'), dpi=300)
 plt.show(block=False)
 plt.close('all')
+
+# In[]
+train_record = pd.read_csv(r".\hw3\logs\D20191001T2143\training_logs_epoch000to199.csv")
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.plot(train_record["epoch"], train_record["acc"], label='Train')
+ax.plot(train_record["epoch"], train_record["val_acc"], label='Validate')
+ax.legend()
+plt.savefig(os.path.join(r".\hw3\logs\D20191001T2143\training_process.png"), dpi=300)
+plt.show()
+
+# In[]
+from keras.models import load_model
+
+model = load_model(r".\hw3\logs\D20191001T2143\hw3_ResNet50v2_epoch077.h5")
+y_pred = model.predict(x_valid)
+
+# In[]
+from sklearn.metrics import confusion_matrix
+y_target = np.argmax(y_valid, axis=1)
+y_pred = np.argmax(y_pred, axis=1)
+
+confu_mat = confusion_matrix(y_target, y_pred)
+sum_confu_mat = np.sum(confu_mat, axis=1)
+norm_confu_mat = confu_mat / sum_confu_mat
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.imshow(norm_confu_mat, cmap="jet")
+plt.show()

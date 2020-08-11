@@ -1,0 +1,44 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 32, 32, 3)         | (3, 3, 3, 64)        | (1, 1)   | same     | (None, 32, 32, 64)  
+batch_normalization_1     | (None, 32, 32, 64)        |                      |          |          |                     
+activation_1/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_1           | (None, 32, 32, 64)        | (2, 2)               | (2, 2)   | same     | (None, 16, 16, 64)  
+conv2d_2                  | (None, 16, 16, 64)        | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 16, 16, 128) 
+batch_normalization_2     | (None, 16, 16, 128)       |                      |          |          |                     
+activation_2/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_2           | (None, 16, 16, 128)       | (2, 2)               | (2, 2)   | same     | (None, 8, 8, 128)   
+conv2d_3                  | (None, 8, 8, 128)         | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 8, 8, 256)   
+batch_normalization_3     | (None, 8, 8, 256)         |                      |          |          |                     
+activation_3/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_3           | (None, 8, 8, 256)         | (2, 2)               | (2, 2)   | same     | (None, 4, 4, 256)   
+flatten_1                 | (None, 4, 4, 256)         |                      |          |          | (None, 4096)        
+dense_1                   | (None, 4096)              | 512                  |          |          | (None, 512)         
+batch_normalization_4     | (None, 512)               |                      |          |          |                     
+activation_4/Relu:0       |                           |                      |          |          |                     
+dropout_1                 | 0.0                       |                      |          |          |                     
+dense_2                   | (None, 512)               | 10                   |          |          | (None, 10)          
+activation_5/Softmax:0    |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------
+Configurations:
+ACTIVATION_FUNC                relu
+BATCH_SIZE                     256
+BIAS_INIT_DEFAULT              0
+CONV2D_KERNEL_SIZE             (3, 3)
+CONV2D_PADDING                 SAME
+CONV2D_STRIDES                 1
+DROPOUT_RATE                   0
+EPOCHS                         20
+IMG_SHAPE                      [32, 32, 3]
+KERNEL_INIT_METHOD             glorot_normal
+LR                             0.001
+MAXPOOL2D_KERNEL_SIZE          (2, 2)
+MAXPOOL2D_PADDING              SAME
+MAXPOOL2D_STRIDES              2
+NAME                           cifar10_test
+N_CLASS                        10
+SAVE_BEST_ONLY                 False
+UPSAMPLING_KERNEL_SIZE         2
+UPSAMPLING_METHOD              nearest
+VALIDATION_RATE                0.2
+-------------------------------------------------------------------------------------------------------------------------

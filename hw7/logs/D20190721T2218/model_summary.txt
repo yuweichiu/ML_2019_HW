@@ -1,0 +1,31 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 32, 32, 3)         | (3, 3, 3, 64)        | (1, 1)   | same     | (None, 32, 32, 64)  
+activation_1/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_1           | (None, 32, 32, 64)        | (2, 2)               | (2, 2)   | same     | (None, 16, 16, 64)  
+conv2d_2                  | (None, 16, 16, 64)        | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_2/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_2           | (None, 16, 16, 128)       | (2, 2)               | (2, 2)   | same     | (None, 8, 8, 128)   
+conv2d_3                  | (None, 8, 8, 128)         | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 8, 8, 256)   
+activation_3/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_3           | (None, 8, 8, 256)         | (2, 2)               | (2, 2)   | same     | (None, 4, 4, 256)   
+flatten_1                 | (None, 4, 4, 256)         |                      |          |          | (None, 4096)        
+dense_1                   | (None, 4096)              | 1024                 |          |          | (None, 1024)        
+activation_4/Relu:0       |                           |                      |          |          |                     
+dense_2                   | (None, 1024)              | 128                  |          |          | (None, 128)         
+activation_5/Relu:0       |                           |                      |          |          |                     
+dense_3                   | (None, 128)               | 1024                 |          |          | (None, 1024)        
+activation_6/Relu:0       |                           |                      |          |          |                     
+dense_4                   | (None, 1024)              | 4096                 |          |          | (None, 4096)        
+activation_7/Relu:0       |                           |                      |          |          |                     
+reshape_1                 | (None, 4096)              |                      |          |          | (None, 4, 4, 256)   
+up_sampling2d_1           | (None, 4, 4, 256)         |                      | (2, 2)   |          | (None, 8, 8, 256)   
+conv2d_transpose_1        | (None, 8, 8, 256)         | (3, 3, 128, 256)     | (1, 1)   | same     | (None, 8, 8, 128)   
+activation_8/Relu:0       |                           |                      |          |          |                     
+up_sampling2d_2           | (None, 8, 8, 128)         |                      | (2, 2)   |          | (None, 16, 16, 128) 
+conv2d_transpose_2        | (None, 16, 16, 128)       | (3, 3, 64, 128)      | (1, 1)   | same     | (None, 16, 16, 64)  
+activation_9/Relu:0       |                           |                      |          |          |                     
+up_sampling2d_3           | (None, 16, 16, 64)        |                      | (2, 2)   |          | (None, 32, 32, 64)  
+conv2d_transpose_3        | (None, 32, 32, 64)        | (3, 3, 3, 64)        | (1, 1)   | same     | (None, 32, 32, 3)   
+activation_10/Sigmoid:0   |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------

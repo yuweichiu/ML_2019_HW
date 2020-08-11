@@ -1,0 +1,23 @@
+Name                      | Input_shape               | Kernel size          | Strides  | Padding  | Output_shape        
+-------------------------------------------------------------------------------------------------------------------------
+conv2d_1                  | (None, 32, 32, 3)         | (3, 3, 3, 128)       | (1, 1)   | same     | (None, 32, 32, 128) 
+activation_1/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_1           | (None, 32, 32, 128)       | (2, 2)               | (2, 2)   | same     | (None, 16, 16, 128) 
+conv2d_2                  | (None, 16, 16, 128)       | (3, 3, 128, 64)      | (1, 1)   | same     | (None, 16, 16, 64)  
+activation_2/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_2           | (None, 16, 16, 64)        | (2, 2)               | (2, 2)   | same     | (None, 8, 8, 64)    
+conv2d_3                  | (None, 8, 8, 64)          | (3, 3, 64, 32)       | (1, 1)   | same     | (None, 8, 8, 32)    
+activation_3/Relu:0       |                           |                      |          |          |                     
+max_pooling2d_3           | (None, 8, 8, 32)          | (2, 2)               | (2, 2)   | same     | (None, 4, 4, 32)    
+conv2d_transpose_1        | (None, 4, 4, 32)          | (3, 3, 32, 32)       | (1, 1)   | same     | (None, 4, 4, 32)    
+activation_4/Relu:0       |                           |                      |          |          |                     
+up_sampling2d_1           | (None, 4, 4, 32)          |                      | (2, 2)   |          | (None, 8, 8, 32)    
+conv2d_transpose_2        | (None, 8, 8, 32)          | (3, 3, 64, 32)       | (1, 1)   | same     | (None, 8, 8, 64)    
+activation_5/Relu:0       |                           |                      |          |          |                     
+up_sampling2d_2           | (None, 8, 8, 64)          |                      | (2, 2)   |          | (None, 16, 16, 64)  
+conv2d_transpose_3        | (None, 16, 16, 64)        | (3, 3, 128, 64)      | (1, 1)   | same     | (None, 16, 16, 128) 
+activation_6/Relu:0       |                           |                      |          |          |                     
+up_sampling2d_3           | (None, 16, 16, 128)       |                      | (2, 2)   |          | (None, 32, 32, 128) 
+conv2d_transpose_4        | (None, 32, 32, 128)       | (3, 3, 3, 128)       | (1, 1)   | same     | (None, 32, 32, 3)   
+activation_7/Sigmoid:0    |                           |                      |          |          |                     
+-------------------------------------------------------------------------------------------------------------------------
