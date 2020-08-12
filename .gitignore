@@ -19,5 +19,8 @@
 /hw7/logs/**/*.h5
 /practice/logs/**/*.h5
 
+# encode
+/hw7/logs/**/encode.txt
+
 # ignore jupyter notebook checkpoint:
 /practice/notebook/.ipynb_checkpoints
